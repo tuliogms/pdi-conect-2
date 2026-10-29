@@ -5,7 +5,6 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'PDI Interativo | Educação Inclusiva',
   description: 'Plano de Desenvolvimento Individual colaborativo para uma educação mais inclusiva.',
-  generator: 'v0.app',
   icons: {
     icon: [
       {
@@ -26,11 +25,9 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light dark',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
-  ],
+  // o CSS define apenas o tema claro (:root { color-scheme: light })
+  colorScheme: 'light',
+  themeColor: '#f3f8f0',
 }
 
 export default function RootLayout({
