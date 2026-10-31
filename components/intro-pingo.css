@@ -1,0 +1,135 @@
+.intro-scene{min-height:100svh;background:#fbfdf9;position:relative;display:flex;flex-direction:column;overflow:hidden;isolation:isolate}.intro-scene:before{content:"";position:absolute;z-index:-1;width:70vmax;height:70vmax;border-radius:50%;left:50%;top:49%;transform:translate(-50%,-50%);background:radial-gradient(circle,#e8f4e4 0%,#f4faf0 49%,transparent 70%)}.intro-header{padding:clamp(20px,3vw,32px) clamp(24px,5vw,70px);display:flex;justify-content:space-between;align-items:center;gap:20px}.intro-logos{display:flex;align-items:center;gap:18px}.intro-uemg{display:block;width:clamp(125px,17vw,196px);height:auto;mix-blend-mode:multiply}.intro-divider{height:39px;width:1px;background:#d5e5d6}.intro-profei{display:block;width:clamp(70px,8vw,95px);height:auto}.intro-skip{border:1px solid #cfe2d2;border-radius:100px;background:#fff;color:#4a7563;font-size:12px;font-weight:650;text-decoration:none;padding:11px 16px;white-space:nowrap}.intro-skip:hover{background:#eaf6eb}.intro-skip:focus-visible{outline:3px solid #31589b;outline-offset:3px}.intro-center{flex:1;display:grid;place-items:center;padding:0 24px 20px}.intro-composition{position:relative;width:min(660px,100%);min-height:385px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.intro-orbit{position:absolute;width:340px;height:340px;border-radius:50%;border:1px solid #cce4cb;animation:intro-orbit-in 1.5s ease-out both}.intro-orbit.intro-second{width:410px;height:410px;border-color:#e0eee0;animation-delay:.1s}.intro-spark{position:absolute;border-radius:50%;opacity:0;animation:intro-pop .7s cubic-bezier(.2,.8,.2,1.2) forwards}.intro-s1{width:20px;height:20px;background:var(--yellow);top:30px;left:calc(50% - 147px);animation-delay:.6s}.intro-s2{width:13px;height:13px;background:var(--red);right:calc(50% - 178px);top:100px;animation-delay:.8s}.intro-s3{width:16px;height:16px;background:var(--blue);left:calc(50% - 184px);bottom:100px;animation-delay:1s}.intro-s4{width:12px;height:12px;background:var(--green);right:calc(50% - 140px);bottom:35px;animation-delay:1.2s}.intro-small-star{position:absolute;color:#e8bd28;font-size:26px;top:40px;right:calc(50% - 130px);opacity:0;animation:intro-pop .8s 1.3s forwards}.intro-icon{width:74px;height:74px;position:relative;margin-bottom:12px;opacity:0;animation:intro-rise .7s .3s forwards}.intro-icon svg{display:block;width:100%;height:100%}.intro-title{font-size:clamp(90px,15vw,145px);line-height:.9;letter-spacing:-.075em;font-weight:800;margin:0;opacity:0;animation:intro-rise .8s .6s forwards}.intro-title span:nth-child(1){color:var(--blue)}.intro-title span:nth-child(2){color:var(--green)}.intro-title span:nth-child(3){color:var(--red)}.intro-interativo{margin:8px 0 0;font-size:clamp(19px,3vw,27px);letter-spacing:.20em;text-transform:uppercase;font-weight:700;color:var(--navy);opacity:0;animation:intro-rise .8s 1s forwards}.intro-message{margin:24px 0 0;color:#607d70;line-height:1.5;font-size:clamp(14px,1.8vw,16px);opacity:0;animation:intro-rise .8s 1.35s forwards}.intro-footer{padding:0 clamp(24px,5vw,70px) clamp(24px,4vw,40px);display:flex;align-items:end;justify-content:space-between;gap:20px;color:#879e91;font-size:11px}.intro-footer-label{letter-spacing:.11em;text-transform:uppercase;font-weight:700;line-height:1.5}.intro-loading{text-align:right}.intro-progress{margin-top:9px;width:155px;height:4px;border-radius:9px;background:#dcebdd;overflow:hidden}.intro-progress:after{content:"";display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--green),var(--yellow),var(--red));transform-origin:left;animation:intro-load 4.8s linear both}.intro-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@keyframes intro-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes intro-pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}@keyframes intro-orbit-in{from{opacity:0;transform:scale(.83)}to{opacity:1;transform:scale(1)}}@keyframes intro-load{from{transform:scaleX(0)}to{transform:scaleX(1)}}@media(max-width:550px){.intro-header{gap:8px}.intro-logos{gap:9px}.intro-divider{height:30px}.intro-skip{font-size:11px;padding:10px 11px}.intro-composition{min-height:320px}.intro-orbit{width:255px;height:255px}.intro-orbit.intro-second{width:300px;height:300px}.intro-s1{left:calc(50% - 112px);top:25px}.intro-s2{right:calc(50% - 140px);top:90px}.intro-s3{left:calc(50% - 138px);bottom:83px}.intro-s4{right:calc(50% - 102px);bottom:25px}.intro-small-star{right:calc(50% - 105px);top:25px}.intro-icon{width:60px;height:60px}.intro-message{margin-top:16px}.intro-footer-label{font-size:9px}.intro-progress{width:120px}}@media(max-height:600px){.intro-composition{min-height:260px}.intro-orbit{width:245px;height:245px}.intro-orbit.intro-second{width:280px;height:280px}.intro-icon{width:48px;height:48px}.intro-title{font-size:80px}.intro-message{margin-top:10px}}@media(prefers-reduced-motion:reduce){.intro-scene,.intro-scene *,.intro-scene *::before,.intro-scene *::after{animation-duration:.01ms!important;animation-delay:0ms!important;animation-iteration-count:1!important}.intro-progress:after{transform:scaleX(1)}}
+.intro-title{overflow:visible;animation:intro-rise .65s .25s forwards}.intro-title .intro-letter{display:inline-block;position:relative;transform-origin:50% 95%}.intro-title .intro-letter-p{animation:intro-letter-bounce .7s 1.6s both}.intro-title .intro-letter-d{animation:intro-letter-bounce .7s 1.8s both}.intro-title .intro-letter-i{animation:intro-i-settle .55s 2.48s both}.intro-dot-character{display:block;position:absolute;z-index:3;width:.14em;height:.14em;border-radius:50%;background:#f5c72c;left:50%;top:-.12em;box-shadow:inset -.012em -.016em 0 #e0a927;opacity:0;animation:intro-character 2.3s .55s forwards}.intro-dot-character:before,.intro-dot-character:after{content:"";position:absolute;top:37%;width:9%;height:9%;border-radius:50%;background:#8b7122}.intro-dot-character:before{left:30%}.intro-dot-character:after{right:30%}.intro-orbit{animation:intro-orbit-in 1.8s .3s ease-out both}.intro-s1,.intro-s2,.intro-s3,.intro-s4,.intro-small-star{animation-delay:2.65s}.intro-icon{animation:intro-rise .6s 2.35s forwards}.intro-interativo{animation:intro-rise .65s 2.55s forwards}.intro-message{animation:intro-rise .7s 3s forwards}@keyframes intro-letter-bounce{0%{transform:translateY(0)}35%{transform:translateY(-.055em) rotate(-3deg)}65%{transform:translateY(.01em) scaleY(.96)}100%{transform:translateY(0) scaleY(1)}}@keyframes intro-i-settle{0%{transform:scaleY(1)}35%{transform:scaleY(.89)}75%{transform:scaleY(1.04)}100%{transform:scaleY(1)}}@keyframes intro-character{0%{opacity:0;transform:translate(2.35em,-.15em) scale(1)}8%{opacity:1;transform:translate(2em,-.15em) scale(1)}28%{opacity:1;transform:translate(1.3em,.42em) scale(1.22,.8)}45%{opacity:1;transform:translate(.68em,-.55em) scale(.92,1.08)}64%{opacity:1;transform:translate(.08em,.05em) scale(1.2,.8)}79%{opacity:1;transform:translate(-.5em,-.35em) scale(.95,1.05)}94%{opacity:1;transform:translate(-.5em,.02em) scale(1.18,.8)}100%{opacity:1;transform:translate(-.095em,0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.intro-dot-character{opacity:1;transform:translate(-.095em,0)}}
+.intro-title{display:flex;align-items:baseline;justify-content:center;gap:.012em;animation:intro-rise .65s .15s forwards}.intro-title .intro-big-i{display:inline-block;position:relative;width:.30em;height:.91em;color:#ef5c3c}.intro-big-i-stem{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:.19em;height:.60em;border-radius:.045em;background:#ef5c3c;transform-origin:bottom;animation:intro-stem-bop .55s 2.8s both}.intro-jump-dot{position:absolute;display:block;width:.19em;height:.19em;left:50%;top:.02em;border-radius:50%;background:#f5c72c;box-shadow:inset -.015em -.02em 0 #dea91c,0 .025em .05em #a77e2030;opacity:0;animation:intro-jump-onto-i 2.65s .3s both}.intro-jump-dot:before,.intro-jump-dot:after{content:"";position:absolute;width:.013em;height:.019em;top:36%;background:#776219;border-radius:50%}.intro-jump-dot:before{left:29%}.intro-jump-dot:after{right:29%}.intro-title .intro-letter-p{animation:intro-letter-bounce .6s 1.5s both}.intro-title .intro-letter-d{animation:intro-letter-bounce .6s 1.8s both}.intro-s1,.intro-s2,.intro-s3,.intro-s4,.intro-small-star{animation-delay:2.9s}.intro-interativo{animation:intro-rise .65s 2.7s forwards}.intro-message{animation:intro-rise .65s 3.15s forwards}.intro-icon{animation:intro-rise .6s .45s forwards}@keyframes intro-jump-onto-i{0%{opacity:0;transform:translate(2.5em,-.3em) scale(1)}6%{opacity:1;transform:translate(2.2em,-.3em) scale(.9,1.1)}22%{opacity:1;transform:translate(1.6em,.42em) scale(1.28,.74)}39%{opacity:1;transform:translate(.9em,-.58em) scale(.88,1.12)}56%{opacity:1;transform:translate(.42em,.38em) scale(1.25,.78)}72%{opacity:1;transform:translate(.04em,-.45em) scale(.9,1.1)}88%{opacity:1;transform:translate(-.095em,.04em) scale(1.3,.72)}95%{opacity:1;transform:translate(-.095em,-.1em) scale(.95,1.05)}100%{opacity:1;transform:translate(-.095em,0) scale(1)}}@keyframes intro-stem-bop{0%{transform:translateX(-50%) scaleY(1)}35%{transform:translateX(-50%) scaleY(.83)}70%{transform:translateX(-50%) scaleY(1.06)}100%{transform:translateX(-50%) scaleY(1)}}@media(prefers-reduced-motion:reduce){.intro-jump-dot{animation:none!important;opacity:1;transform:translate(-.095em,0)}}
+
+/* ---------------------------------------------------------------------------
+   Intro "Pingo Saltitante" — animação de entrada do PDI Interativo.
+   A composição (órbitas, faíscas, letras P/D balançando e a bolinha amarela
+   "Pingo" saltando até pousar no lugar do ponto do "I") vem do protótipo
+   pdi-pingo-saltitante.html. Aqui ficam só as variáveis de cor e a onda
+   verde que sobe no fim para entregar a tela de login.
+   --------------------------------------------------------------------------- */
+.intro-scene {
+  --navy: #294e67;
+  --green: #31ae78;
+  --yellow: #f5c72c;
+  --red: #ef5c3c;
+  --blue: #31589b;
+  width: 100%;
+  min-height: 100svh;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--navy);
+}
+
+/* O conteúdo da cena se dissolve quando a onda começa a subir. */
+.intro-scene[data-saindo='true'] .intro-center,
+.intro-scene[data-saindo='true'] .intro-footer,
+.intro-scene[data-saindo='true'] .intro-header {
+  animation: intro-fade-out 0.5s ease forwards;
+}
+
+@keyframes intro-fade-out {
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+/* ----- onda verde subindo ----- */
+.intro-wave {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.intro-wave-layer {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 190%;
+  height: 175vh;
+  transform: translate(-50%, 108%);
+  border-radius: 52% 48% 0 0 / 12% 16% 0 0;
+  will-change: transform;
+}
+
+/* três camadas: verde profundo, verde médio e o verde claro da tela de login */
+.intro-wave-1 {
+  background: linear-gradient(180deg, #6cc596 0%, #2f9d70 45%, #2f8a64 100%);
+}
+
+.intro-wave-2 {
+  background: linear-gradient(180deg, #a7dcb4 0%, #7fca9b 60%, #5fb886 100%);
+}
+
+.intro-wave-3 {
+  background: linear-gradient(180deg, #f3f8f0 0%, #e3f1df 55%, #cfe7cd 100%);
+}
+
+.intro-wave--on .intro-wave-layer {
+  animation: intro-wave-rise 1.05s cubic-bezier(0.62, 0.02, 0.36, 1) forwards;
+}
+
+.intro-wave--on .intro-wave-1 {
+  animation-delay: 0s;
+}
+
+.intro-wave--on .intro-wave-2 {
+  animation-delay: 0.1s;
+}
+
+.intro-wave--on .intro-wave-3 {
+  animation-delay: 0.22s;
+}
+
+@keyframes intro-wave-rise {
+  0% {
+    transform: translate(-50%, 108%) rotate(0deg);
+  }
+  55% {
+    transform: translate(-50%, -12%) rotate(-1.6deg);
+  }
+  80% {
+    transform: translate(-50%, -3%) rotate(0.8deg);
+  }
+  100% {
+    transform: translate(-50%, -8%) rotate(0deg);
+  }
+}
+
+/* Quem pediu menos movimento na sistema não vê a cena animar:
+   a onda aparece na hora e o login abre logo em seguida. */
+@media (prefers-reduced-motion: reduce) {
+  .intro-scene *,
+  .intro-scene *::before,
+  .intro-scene *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .intro-scene .intro-jump-dot {
+    opacity: 1;
+    transform: translate(-0.095em, 0);
+  }
+
+  .intro-scene .intro-progress::after {
+    transform: none;
+  }
+
+  .intro-wave-layer {
+    animation: none !important;
+  }
+
+  .intro-wave--on .intro-wave-1,
+  .intro-wave--on .intro-wave-2 {
+    opacity: 0;
+  }
+
+  .intro-wave--on .intro-wave-3 {
+    transform: translate(-50%, -8%);
+  }
+}
