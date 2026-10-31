@@ -14,11 +14,11 @@ export function configuracaoComEquipe(pdi, config = pdi.configVazia()) {
   }
 
   const pessoas = [
-    { nome: 'Estudante de teste', perfil: 'Estudante', email: 'estudante.teste@escola.br' },
+    { nome: 'Estudante de teste', perfil: 'Educando', email: 'educando.teste@escola.br' },
     { nome: 'Professor de teste', perfil: 'Professor', email: 'professor.teste@escola.br' },
     { nome: 'AEE de teste', perfil: 'Professor de AEE', email: 'aee.teste@escola.br' },
     { nome: 'Família de teste', perfil: 'Família', email: 'familia.teste@escola.br' },
-    { nome: 'Saúde de teste', perfil: 'Profissional da Saúde', email: 'saude.teste@escola.br' },
+    { nome: 'Apoio de teste', perfil: 'Profissional de Apoio', email: 'apoio.teste@escola.br' },
   ]
 
   return {

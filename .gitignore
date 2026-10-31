@@ -24,3 +24,6 @@ yarn-error.log*
 Thumbs.db
 .idea/
 .vscode/
+
+# banco local de desenvolvimento (scripts/banco-local.mjs)
+.pdi-db

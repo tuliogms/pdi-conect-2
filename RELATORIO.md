@@ -385,3 +385,76 @@ O que as suítes provam na prática:
 | Notificações por e-mail | Exigiria serviço de envio; o app avisa dentro da própria tela |
 | Migrations versionadas | `drizzle-kit` não está nas dependências; o DDL segue em `db/init.sql` |
 | Banco do preview | É um Postgres de desenvolvimento (PGlite) com dados apenas da sessão; para uso real troque `DATABASE_URL` por um Postgres permanente |
+
+## Rodada 6 — as oito áreas do PDI, como a especificação pediu
+
+### O pedido
+
+A especificação completa do aplicativo (oito abas = oito áreas do PDI), com respostas em áudio,
+pranchas de comunicação, autorização técnica da família e histórico de versões. Escopo escolhido:
+**tudo**; abas = **áreas dentro do PDI**; nomes = **educando** e **Profissionais de Apoio** em
+todas as telas, relatórios e PDF.
+
+### O que entrou
+
+| Área | Seções fixas | Antes → agora |
+| --- | --- | --- |
+| **Educando** | 6 | já eram as seis seções do portfólio; agora com **áudio**, **prancha de comunicação** e **perguntas norteadoras configuráveis** |
+| **Professor** | 8 | 6 campos → 8 seções (identificação, observações pedagógicas, potencialidades, dificuldades e barreiras, estratégias, adaptações e recursos, objetivos, acompanhamento) |
+| **Professor de AEE** | 9 | **área nova** (não existia): necessidades específicas, recursos de acessibilidade, estratégias do AEE, potencialidades, habilidades em desenvolvimento, adaptações e recomendações, acompanhamento, observações |
+| **Família** | 10 | 5 campos → 10 seções, incluindo comunicação, autonomia, expectativas e **autorização de compartilhamento com revogação** |
+| **Profissionais de Apoio** | 6 | era “Profissional da Saúde” com 4 campos; agora 6 seções + **acesso só ao que a família autorizou** (regra no código, não aviso) |
+| **Construção do PDI** | — | o consolidado agora mostra a situação de cada área, mantém a autoria de cada contribuição e o **histórico de versões** |
+| **Acompanhamento** | — | além do gráfico: **registros descritivos por período** (objetivos, estratégias, progressos, dificuldades, o que funcionou, o que muda, novos objetivos) e relatório CSV |
+| **Usuário Mestre** | — | 11 abas: entram **Versões do PDI** e **Pranchas de comunicação**; Configurações ganha **identidade institucional** (nome, escola, logo) |
+
+Nomes: `estudante` → **educando** e `Profissional da Saúde` → **Profissionais de Apoio** em telas,
+relatórios, CSV e PDF. Os apelidos antigos continuam aceitos na URL e na migração (`saude` → `apoio`,
+`estudante` → `Educando`), para não perder cadastro nem resposta já gravada.
+
+### Como funciona a autorização da família
+
+1. Na aba **Família → Autorização de compartilhamento**, a família marca que autoriza e escolhe
+   **quais áreas** liberar; fica registrado o nome de quem autorizou e a data.
+2. `acessoNaArea()` (em `lib/pdi-tipos.ts`) aplica a regra: se o perfil é Profissional de Apoio e a
+   área não está liberada, o retorno é `Sem acesso` — a área nem aparece como aba.
+3. A revogação grava a data e o motivo, fecha o acesso na hora e continua no histórico.
+
+### Pranchas, áudio e acessibilidade
+
+- **Prancha de comunicação**: categorias com símbolos (emoji ou imagem própria) e **nome escrito
+  embaixo**; seleção única (“Um símbolo”) ou múltipla (“Vários símbolos”) montando **símbolo →
+  frase**; “Ouvir” e “Usar esta frase” (a frase entra na resposta).
+- **Resposta em áudio**: gravação com `MediaRecorder`, guardada junto da resposta e com botão de
+  remover; quando o navegador não oferece microfone, o botão não aparece.
+- **Leitura em voz alta** continua em todas as perguntas; ditado por voz (STT) segue disponível.
+- Cada campo mostra **quem escreveu e quando**; comentários são entradas separadas e não
+  sobrescrevem a resposta.
+
+### Verificação
+
+| Checagem | Resultado |
+| --- | --- |
+| `pnpm typecheck` | sem erros |
+| `pnpm build` | 6 rotas (`/`, `/login`, `/dashboard`, `/api/config`, `/api/pdi`, `_not-found`) |
+| `pnpm test` | **203/203** — lógica 76, estilos 14, interface 80, fluxos 33 |
+| `pnpm test:banco` | **5/5** — interface → API → Postgres com o servidor no ar |
+| Banco depois do teste | limpo (`pdi_config`, `pdi_workspaces` e `pdi_entries` em 0 registros) |
+
+O que as suítes novas provam:
+
+- **Autorização**: sem autorização o profissional de apoio vê **só** a própria área; com autorização
+  vê apenas a área liberada; revogar fecha de novo (testes de lógica e de interface).
+- **Prancha**: os símbolos aparecem com nome escrito, dois símbolos montam uma frase e a frase
+  entra na resposta.
+- **Seções**: 6/8/9/10/6, com todos os campos agrupados e nenhum campo solto.
+- **Migração**: configuração antiga com `saude` vira `apoio` (campos, permissões e autorização).
+
+### Ainda depende de decisão (não é defeito)
+
+| Item | Por quê |
+| --- | --- |
+| Login com senha real / institucional | Precisa de provedor de identidade e sessão no servidor |
+| Nome do produto | O portfólio chama de **PDI Participativo**; o app segue como **PDI Interativo** (agora configurável em Configurações → Identidade institucional) |
+| Imagens reais nos símbolos | As pranchas usam emoji + nome escrito; o Mestre pode trocar por imagens próprias (a estrutura `imagem` já existe) |
+| Banco do preview | É um Postgres de desenvolvimento (PGlite); para uso real troque `DATABASE_URL` |

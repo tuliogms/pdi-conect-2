@@ -5,17 +5,21 @@ import { BarChart3, Check, Save, TrendingUp } from 'lucide-react'
 import {
   formatarData,
   formatarDataCurta,
+  lerPeriodosAcompanhamento,
   lerProximosPassos,
   lerRegistrosEvolucao,
+  salvarPeriodoAcompanhamento,
   salvarProximosPassos,
   salvarRegistroEvolucao,
 } from '@/lib/dados'
 import {
+  CAMPOS_PERIODO,
   ESCALA_EVOLUCAO,
   INDICADORES_PADRAO,
   TEMAS_ESTUDANTE,
   type Configuracao,
   type Estudante,
+  type PeriodoAcompanhamento,
   type RegistroEvolucao,
 } from '@/lib/pdi-tipos'
 import type { Avisar } from './dashboard-app'
@@ -50,6 +54,7 @@ export default function Acompanhamento({
   const [salvandoProximos, setSalvandoProximos] = useState(false)
 
   const registros = useMemo(() => lerRegistrosEvolucao(entradas), [entradas])
+  const periodos = useMemo(() => lerPeriodosAcompanhamento(entradas), [entradas])
   const entradaProximos = lerProximosPassos(entradas)
   const textoProximos = proximos ?? entradaProximos?.content ?? ''
 
@@ -58,12 +63,12 @@ export default function Acompanhamento({
       <section>
         <Cabecalho
           titulo="Acompanhamento"
-          descricao="Registre a evolução do estudante ao longo do tempo."
+          descricao="Registre a evolução do educando ao longo do tempo."
         />
         <div className="empty-state">
           <BarChart3 aria-hidden="true" />
           <strong>Sem dados para acompanhar</strong>
-          <p>Cadastre um estudante e registre a evolução para ver o gráfico aqui.</p>
+          <p>Cadastre um educando e registre a evolução para ver o gráfico aqui.</p>
         </div>
       </section>
     )
@@ -112,11 +117,11 @@ export default function Acompanhamento({
     <section>
       <Cabecalho
         titulo="Acompanhamento"
-        descricao="Evolução do estudante com registros e próximos passos."
+        descricao="Evolução do educando com registros por período, gráfico e próximos passos."
       />
 
       <label className="student-picker">
-        Estudante
+        Educando
         <select value={estudante.id} onChange={evento => setEstudanteId(evento.target.value)}>
           {estudantes.map(item => (
             <option key={item.id} value={item.id}>
@@ -133,8 +138,8 @@ export default function Acompanhamento({
               <TrendingUp aria-hidden="true" /> Evolução de {estudante.nome}
             </h2>
             <span className="muted small-note">
-              Escala de 1 a {ESCALA_EVOLUCAO} · {respondidos} de {TEMAS_ESTUDANTE.length} tópicos do
-              estudante respondidos
+              Escala de 1 a {ESCALA_EVOLUCAO} · {respondidos} de {TEMAS_ESTUDANTE.length} seções do
+              educando respondidas
             </span>
           </header>
 
@@ -241,12 +246,178 @@ export default function Acompanhamento({
         </div>
       </article>
 
+      <RegistrosPorPeriodo
+        estudante={estudante}
+        autor={autor}
+        periodos={periodos}
+        avisar={avisar}
+        recarregar={recarregar}
+        modo={modo}
+      />
+
       {carregando && (
         <p className="muted" role="status">
           Carregando registros…
         </p>
       )}
     </section>
+  )
+}
+
+/**
+ * Registros descritivos por período: objetivos, estratégias em uso, progressos,
+ * dificuldades que permanecem, o que funcionou, o que precisa mudar e novos
+ * objetivos. O gráfico acima complementa, mas não substitui, estes registros.
+ */
+function RegistrosPorPeriodo({
+  estudante,
+  autor,
+  periodos,
+  avisar,
+  recarregar,
+  modo,
+}: {
+  estudante: Estudante
+  autor: string
+  periodos: PeriodoAcompanhamento[]
+  avisar: Avisar
+  recarregar: () => Promise<void>
+  modo: string
+}) {
+  type CamposPeriodo = Record<(typeof CAMPOS_PERIODO)[number]['chave'], string>
+  const vazio = Object.fromEntries(CAMPOS_PERIODO.map(campo => [campo.chave, ''])) as CamposPeriodo
+  const [formulario, setFormulario] = useState<CamposPeriodo>(vazio)
+  const [salvando, setSalvando] = useState(false)
+  const [aberto, setAberto] = useState(false)
+
+  const preenchido = CAMPOS_PERIODO.some(campo => formulario[campo.chave].trim().length > 0)
+
+  async function salvar(evento: React.FormEvent<HTMLFormElement>) {
+    evento.preventDefault()
+    if (!preenchido) return
+    setSalvando(true)
+    try {
+      await salvarPeriodoAcompanhamento({ estudante, periodo: formulario, autor })
+      await recarregar()
+      setFormulario(vazio)
+      setAberto(false)
+      avisar(`Registro do período salvo (${modo === 'banco' ? 'banco de dados' : 'navegador'}).`)
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  function baixarRelatorio() {
+    const cabecalho = ['Período', 'Quando', 'Autor', ...CAMPOS_PERIODO.map(campo => campo.titulo)]
+    const linhas = periodos.map(periodo =>
+      [
+        periodo.periodo,
+        formatarData(periodo.quando),
+        periodo.autor,
+        ...CAMPOS_PERIODO.slice(1).map(campo => String(periodo[campo.chave] ?? '')),
+      ]
+        .map(valor => `"${String(valor).split(String.fromCharCode(34)).join(String.fromCharCode(34, 34))}"`)
+        .join(';'),
+    )
+    const conteudo = [cabecalho.join(';'), ...linhas].join(String.fromCharCode(10))
+    const url = URL.createObjectURL(new Blob([conteudo], { type: 'text/csv;charset=utf-8' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `acompanhamento-${estudante.nome.toLowerCase().replace(/\s+/g, '-')}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+    avisar('Relatório do acompanhamento exportado em CSV.')
+  }
+
+  return (
+    <article className="periodo-card">
+      <div className="area-group-topo">
+        <div>
+          <h2>Registros por período</h2>
+          <p className="muted small-note">
+            Cada período guarda o que a equipe registrou, com autor e data. O gráfico acima
+            complementa estes registros, sem substituí-los.
+          </p>
+        </div>
+        <div className="row-actions">
+          <button
+            type="button"
+            className="outline-btn"
+            onClick={() => setAberto(atual => !atual)}
+            aria-expanded={aberto}
+          >
+            {aberto ? 'Fechar formulário' : 'Novo registro'}
+          </button>
+          {periodos.length > 0 && (
+            <button type="button" className="soft-btn" onClick={baixarRelatorio}>
+              Baixar relatório
+            </button>
+          )}
+        </div>
+      </div>
+
+      {aberto && (
+        <form className="periodo-form" onSubmit={salvar}>
+          <div className="form-grid">
+            {CAMPOS_PERIODO.map(campo => (
+              <label key={campo.chave} className={campo.chave === 'periodo' ? undefined : 'largo'}>
+                {campo.titulo}
+                <span className="muted small-note">{campo.instrucao}</span>
+                <textarea
+                  value={formulario[campo.chave]}
+                  onChange={evento =>
+                    setFormulario({ ...formulario, [campo.chave]: evento.target.value })
+                  }
+                  rows={campo.chave === 'periodo' ? 1 : 2}
+                />
+              </label>
+            ))}
+          </div>
+          <div className="form-actions">
+            <button
+              type="button"
+              className="outline-btn"
+              onClick={() => {
+                setFormulario(vazio)
+                setAberto(false)
+              }}
+            >
+              Cancelar
+            </button>
+            <button className="primary-btn" type="submit" disabled={salvando || !preenchido}>
+              <Save aria-hidden="true" /> {salvando ? 'Salvando…' : 'Salvar período'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {periodos.length === 0 ? (
+        <p className="muted small-note">
+          Nenhum registro por período ainda. Use “Novo registro” ao final de cada período.
+        </p>
+      ) : (
+        <ol className="timeline">
+          {periodos.map(periodo => (
+            <li key={periodo.id}>
+              <span className="timeline-ponto" aria-hidden="true" />
+              <div>
+                <strong>{periodo.periodo}</strong>
+                <small className="muted">
+                  {periodo.autor} · {formatarData(periodo.quando)}
+                </small>
+                {CAMPOS_PERIODO.slice(1).map(campo =>
+                  periodo[campo.chave] ? (
+                    <p key={campo.chave}>
+                      <b>{campo.titulo}:</b> {periodo[campo.chave]}
+                    </p>
+                  ) : null,
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </article>
   )
 }
 

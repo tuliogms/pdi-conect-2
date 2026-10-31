@@ -121,11 +121,13 @@ const porTexto = (raiz, seletor, texto) =>
 const secoesAdmin = [
   'Visão geral',
   'Usuários',
-  'Estudantes',
+  'Educandos',
   'Planos de PDI',
   'PDI consolidado',
+  'Versões do PDI',
   'Permissões de acesso',
   'Campos e formulários',
+  'Pranchas de comunicação',
   'Acompanhamento',
   'Configurações',
 ]
@@ -144,7 +146,7 @@ console.log('\n1) Usuário Mestre — todas as abas')
 {
   const container = await montar('Usuário Mestre')
   ok(
-    'menu do administrador tem as nove abas',
+    'menu do administrador tem as onze abas',
     itensDoMenu(container).length === secoesAdmin.length,
   )
 
@@ -156,23 +158,26 @@ console.log('\n1) Usuário Mestre — todas as abas')
 
   // cada aba precisa ter conteúdo próprio — não pode ser uma tela vazia
   await navegar(container, 'Visão geral')
-  ok('visão geral mostra os indicadores', container.textContent.includes('Estudantes'))
+  ok('visão geral mostra os indicadores', container.textContent.includes('Educandos'))
 
   await navegar(container, 'Usuários')
   ok('usuários lista a equipe cadastrada', container.querySelectorAll('.admin-table .table-row').length === 5)
 
-  await navegar(container, 'Estudantes')
-  ok('estudantes lista o estudante cadastrado', container.querySelectorAll('.table-row.estudantes').length >= 1)
+  await navegar(container, 'Educandos')
+  ok('educandos lista o educando cadastrado', container.querySelectorAll('.table-row.estudantes').length >= 1)
 
   await navegar(container, 'Planos de PDI')
-  ok('planos de PDI lista os estudantes', container.querySelectorAll('.pdi-card').length >= 1)
+  ok('planos de PDI lista os educandos', container.querySelectorAll('.pdi-card').length >= 1)
   const abrirPlano = container.querySelector('.pdi-card')
   await clicar(abrirPlano)
   ok(
-    'plano abre as áreas colaborativas do estudante',
-    container.querySelectorAll('.area-tab').length >= 3,
+    'plano abre as áreas do PDI em abas',
+    container.querySelectorAll('.pdi-abas .area-tab').length >= 5,
   )
-  ok('plano mostra os seis tópicos do estudante', container.querySelectorAll('.topico-card').length === 6)
+  ok(
+    'plano mostra os seis tópicos do educando',
+    container.querySelectorAll('.topico-card').length === 6,
+  )
 
   await navegar(container, 'Permissões de acesso')
   ok('permissões mostra a matriz de áreas', container.querySelectorAll('.permission-row').length >= 4)
@@ -250,25 +255,40 @@ console.log('\n3) Professor — abas, Meus alunos e permissões por área')
 
   // o cartão do aluno inteiro é o botão que abre o PDI
   await clicar(container.querySelector('.aluno-card'))
-  const grupos = [...container.querySelectorAll('.area-group')]
-  ok('abre o PDI pelo cartão do aluno', grupos.length >= 3)
+  const abas = [...container.querySelectorAll('.pdi-abas .area-tab')]
+  ok('abre o PDI pelo cartão do aluno', abas.length >= 5)
 
-  const grupoProfessor = grupos.find(grupo => grupo.textContent.includes('Área do Professor'))
-  ok('área do professor aparece para o professor', Boolean(grupoProfessor))
+  // o professor entra direto na própria aba
+  const grupoProfessor = container.querySelector('.aba-painel .area-group')
+  ok(
+    'o professor cai na própria área',
+    Boolean(grupoProfessor) && grupoProfessor.textContent.includes('Área do Professor'),
+  )
   ok(
     'área do professor é editável (tem campos com salvar)',
     grupoProfessor.querySelectorAll('textarea:not([readonly])').length >= 1 &&
       grupoProfessor.querySelectorAll('.save-answer').length >= 1,
   )
+  ok(
+    'área do professor tem as oito seções do professor',
+    grupoProfessor.querySelectorAll('.secao-bloco').length >= 6,
+  )
 
-  const grupoFamilia = grupos.find(grupo => grupo.textContent.includes('Área da Família'))
+  // abre a aba da família: ela deve ser somente leitura para o professor
+  const abaFamilia = abas.find(aba => aba.textContent.includes('Família'))
+  await clicar(abaFamilia)
+  const grupoFamilia = container.querySelector('.aba-painel .area-group')
   ok(
     'área da família fica somente leitura para o professor',
-    grupoFamilia.querySelectorAll('textarea[readonly]').length >= 1,
+    Boolean(grupoFamilia) &&
+      grupoFamilia.querySelectorAll('textarea[readonly]').length >= 1,
   )
   ok('área da família não oferece salvar', grupoFamilia.querySelectorAll('.save-answer').length === 0)
 
-  ok('os seis tópicos do estudante ficam sempre visíveis', container.querySelectorAll('.topico-card').length === 6)
+  // as seis seções do educando ficam na aba do educando
+  const abaEducando = abas.find(aba => aba.textContent.includes('Educando'))
+  await clicar(abaEducando)
+  ok('os seis tópicos do educando ficam na aba do educando', container.querySelectorAll('.topico-card').length === 6)
   ok(
     'descritivo e perguntas disponíveis',
     container.textContent.includes('Descritivo') && container.textContent.includes('Perguntas'),
@@ -306,17 +326,19 @@ console.log('\n4) Acessibilidade — controles')
   ok('botão da barra superior aumenta o texto', appShell.getAttribute('style') !== antes)
 }
 
-console.log('\n5) Estudante — PDI e permissões')
+console.log('\n5) Educando — PDI e permissões')
 {
-  const container = await montar('Estudante')
+  const container = await montar('Educando')
   await navegar(container, 'Meu PDI')
-  ok('estudante vê os seis tópicos', container.querySelectorAll('.topico-card').length === 6)
-  ok('estudante pode escolher Descritivo ou Perguntas', container.textContent.includes('Descritivo'))
-  const grupoProfessor = [...container.querySelectorAll('.area-group')].find(grupo =>
-    grupo.textContent.includes('Área do Professor'),
+  ok('educando vê os seis tópicos', container.querySelectorAll('.topico-card').length === 6)
+  ok('educando pode escolher Descritivo ou Perguntas', container.textContent.includes('Descritivo'))
+  const abaProfessor = [...container.querySelectorAll('.pdi-abas .area-tab')].find(aba =>
+    aba.textContent.includes('Professor'),
   )
+  await clicar(abaProfessor)
+  const grupoProfessor = container.querySelector('.aba-painel .area-group')
   ok(
-    'estudante lê a área do professor, mas não edita',
+    'educando lê a área do professor, mas não edita',
     Boolean(grupoProfessor) &&
       grupoProfessor.textContent.includes('Observações pedagógicas') &&
       grupoProfessor.querySelectorAll('.save-answer').length === 0,
@@ -326,7 +348,83 @@ console.log('\n5) Estudante — PDI e permissões')
   ok('início cumprimenta a pessoa', textoDoH1(container).startsWith('Olá'))
 }
 
-console.log('\n6) Nenhum erro de console durante os testes')
+console.log('\n6) Prancha de comunicação na área do educando')
+{
+  const container = await montar('Educando')
+  await navegar(container, 'Meu PDI')
+  const abrirPrancha = porTexto(container, '.aba-painel button', 'Prancha de comunicação')
+  ok('a prancha pode ser aberta no campo', Boolean(abrirPrancha))
+  await clicar(abrirPrancha)
+
+  const simbolos = [...container.querySelectorAll('.prancha-simbolo')]
+  ok('a prancha mostra símbolos com nome escrito', simbolos.length >= 5)
+  ok(
+    'cada símbolo tem rótulo escrito (leitor de tela)',
+    simbolos.every(simbolo => simbolo.textContent.trim().length > 0),
+  )
+
+  await clicar(simbolos[0])
+  await clicar(simbolos[1])
+  const frase = container.querySelector('.prancha-frase')?.textContent ?? ''
+  ok('dois símbolos montam uma frase', frase.trim().length > 5)
+
+  const usar = porTexto(container, '.prancha-frase button', 'Usar esta frase')
+  await clicar(usar)
+  const texto = container.querySelector('.aba-painel textarea')
+  ok('a frase composta vai para a resposta', Boolean(texto) && texto.value.length > 3)
+}
+
+console.log('\n7) Autorização da família e acesso dos Profissionais de Apoio')
+{
+  // sem autorização: o profissional de apoio não lê nenhuma área
+  const apoio = await montar('Profissional de Apoio')
+  await navegar(apoio, 'Meu PDI')
+  const abasApoio = [...apoio.querySelectorAll('.pdi-abas .area-tab')].map(aba =>
+    aba.textContent.trim(),
+  )
+  ok('sem autorização, o apoio vê só a própria área', abasApoio.length === 1)
+  ok(
+    'sem autorização, nenhuma área de outra pessoa aparece',
+    !abasApoio.some(rotulo => /Educando|Professor|AEE|Família/.test(rotulo)),
+  )
+
+  // a família autoriza o compartilhamento da área do educando
+  const familia = await montar('Família')
+  await navegar(familia, 'Meu PDI')
+  const autorizacao = familia.querySelector('.autorizacao-card')
+  ok('família vê o cartão de autorização', Boolean(autorizacao))
+  ok('autorização começa pendente', autorizacao.textContent.includes('Pendente'))
+
+  const caixa = autorizacao.querySelector('input[type="checkbox"]')
+  await clicar(caixa)
+  const areasLiberaveis = [...familia.querySelectorAll('.autorizacao-areas input[type="checkbox"]')]
+  ok('família escolhe quais áreas compartilhar', areasLiberaveis.length >= 4)
+  await clicar(areasLiberaveis[0])
+
+  const registrar = porTexto(familia, 'button', 'Registrar autorização')
+  await clicar(registrar)
+  const config = JSON.parse(window.localStorage.getItem('pdi.config.v2') ?? '{}')
+  const autorizacoes = Object.values(config.autorizacoes ?? {})
+  ok('autorização fica gravada na configuração', autorizacoes.length === 1 && autorizacoes[0].autorizado === true)
+  ok('autorização guarda a área liberada', (autorizacoes[0]?.areas ?? []).length === 1)
+  ok('autorização guarda quem autorizou', Boolean(autorizacoes[0]?.responsavel))
+
+  // com autorização vigente, o apoio passa a ler a área liberada
+  const apoioDepois = await montar('Profissional de Apoio')
+  await navegar(apoioDepois, 'Meu PDI')
+  ok(
+    'com autorização, o apoio vê a área liberada',
+    apoioDepois.querySelectorAll('.pdi-abas .area-tab').length >= 1,
+  )
+  ok(
+    'o apoio continua sem acesso à área da família',
+    ![...apoioDepois.querySelectorAll('.pdi-abas .area-tab')].some(aba =>
+      aba.textContent.includes('Família'),
+    ),
+  )
+}
+
+console.log('\n8) Nenhum erro de console durante os testes')
 ok(
   erros.length === 0 ? 'console limpo' : `console com ${erros.length} erro(s): ${erros[0]?.slice(0, 200)}`,
   erros.length === 0,

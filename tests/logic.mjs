@@ -78,7 +78,7 @@ ok(
   t.configVazia().estudantes.length === 0 && t.configVazia().usuarios.length === 0,
 )
 const estudanteCriado = t.novoId()
-const equipe = ['Estudante', 'Professor', 'Professor de AEE', 'Família', 'Profissional da Saúde'].map(
+const equipe = ['Estudante', 'Professor', 'Professor de AEE', 'Família', 'Profissional de Apoio'].map(
   perfil => ({
     id: t.novoId(),
     nome: `Pessoa ${perfil}`,
@@ -109,7 +109,7 @@ const acesso = (extra, perfil, area, usuarioId) =>
 
 ok('dono da área edita', acesso(cfg, 'Professor', 'professor', professor.id) === 'Editar')
 ok('outros perfis visualizam', acesso(cfg, 'Professor', 'familia', professor.id) === 'Visualizar')
-ok('administrador edita tudo', t.acessoNaArea(cfg, { perfil: 'Usuário Mestre', estudanteId: estudante, area: 'saude' }) === 'Editar')
+ok('administrador edita tudo', t.acessoNaArea(cfg, { perfil: 'Usuário Mestre', estudanteId: estudante, area: 'apoio' }) === 'Editar')
 ok(
   'permissão "Sem acesso" vence o padrão',
   acesso({ ...cfg, permissoes: { [t.chavePermissao(familia.id, estudante, 'professor')]: 'Sem acesso' } }, 'Família', 'professor', familia.id) === 'Sem acesso',
@@ -122,7 +122,7 @@ ok(
 // 5. progresso das etapas
 let progresso = t.progressoGeral(cfg, [])
 ok('todas as etapas começam pendentes', progresso.every(item => item.status === 'Pendente'))
-ok('área do estudante tem seis tópicos', progresso[0].total === 6)
+ok('área do educando tem seis seções', progresso[0].total === 6)
 
 const entradas = []
 const adicionar = (area, sectionKey, content, authorName = 'Professor') =>
@@ -255,7 +255,7 @@ const cfg2 = cfg
 {
   const entradas = (await d.carregarEntradas(estudante)).entradas
   const csv = relatorio.csvDeRespostas(cfg2, { [estudante]: entradas })
-  ok('planilha começa com o cabeçalho', csv.startsWith('\uFEFF"Estudante";"Turma";"Escola"'))
+  ok('planilha começa com o cabeçalho', csv.startsWith('\uFEFF"Educando";"Turma";"Escola"'))
   ok('planilha tem uma linha por resposta', csv.split('\r\n').length === entradas.filter(e => e.content.trim()).length + 1)
   ok('planilha usa ponto e vírgula', csv.split('\r\n')[1].includes(';'))
   ok('planilha rotula o tópico do estudante', relatorio.rotuloDoCampo(cfg2, 'estudante', 'meu-perfil') === 'Meu perfil')
@@ -267,7 +267,97 @@ const cfg2 = cfg
     'planilha rotula comentário',
     relatorio.rotuloDoCampo(cfg2, 'professor', 'potencialidades#comentario#123').startsWith('Comentário'),
   )
-  ok('planilha rotula área colaborativa', relatorio.rotuloDoCampo(cfg2, 'professor', 'observacoes-pedagogicas') === 'Observações pedagógicas')
+  ok('planilha rotula área colaborativa', relatorio.rotuloDoCampo(cfg2, 'professor', 'observacoes-pedagogicas') ===
+      'Como participa das aulas, realiza as atividades e interage')
+}
+
+// 12. autorização da família (Profissionais de Apoio)
+{
+  const base = t.configVazia()
+  const estudanteAutorizado = t.novoId()
+  const apoio = { id: t.novoId(), nome: 'Apoio', email: 'apoio@escola.br', perfil: 'Profissional de Apoio', estudanteId: estudanteAutorizado, status: 'Ativo' }
+  const semAutorizacao = { ...base, estudantes: [{ id: estudanteAutorizado, nome: 'Educando', serie: '', escola: '' }], usuarios: [apoio] }
+
+  const acesso = (cfg, area) =>
+    t.acessoNaArea(cfg, { usuarioId: apoio.id, perfil: 'Profissional de Apoio', estudanteId: estudanteAutorizado, area })
+
+  ok('sem autorização, o apoio não lê a área do educando', acesso(semAutorizacao, 'estudante') === 'Sem acesso')
+  ok('sem autorização, o apoio não lê a área do professor', acesso(semAutorizacao, 'professor') === 'Sem acesso')
+  ok('sem autorização, o apoio ainda escreve na própria área', acesso(semAutorizacao, 'apoio') === 'Editar')
+
+  const autorizado = {
+    ...semAutorizacao,
+    autorizacoes: {
+      [estudanteAutorizado]: {
+        estudanteId: estudanteAutorizado,
+        autorizado: true,
+        areas: ['estudante'],
+        responsavel: 'Mãe',
+        quando: new Date().toISOString(),
+      },
+    },
+  }
+  ok('com autorização, o apoio lê só a área liberada', acesso(autorizado, 'estudante') === 'Visualizar')
+  ok('área não marcada continua fechada', acesso(autorizado, 'familia') === 'Sem acesso')
+
+  const revogada = {
+    ...autorizado,
+    autorizacoes: {
+      [estudanteAutorizado]: { ...autorizado.autorizacoes[estudanteAutorizado], revogada: true },
+    },
+  }
+  ok('revogar volta a fechar o acesso', acesso(revogada, 'estudante') === 'Sem acesso')
+  ok('autorização em vigor é reconhecida', Boolean(t.autorizacaoDe(autorizado, estudanteAutorizado)))
+  ok('autorização revogada não vale', t.autorizacaoDe(revogada, estudanteAutorizado) === undefined)
+}
+
+// 13. seções fixas e perguntas configuráveis
+{
+  const cfg = t.configVazia()
+  ok('professor tem oito seções fixas', t.secoesDaArea('professor').length === 8)
+  ok('AEE tem nove seções fixas', t.secoesDaArea('aee').length === 9)
+  ok('família tem dez seções fixas', t.secoesDaArea('familia').length === 10)
+  ok('profissionais de apoio têm seis seções fixas', t.secoesDaArea('apoio').length === 6)
+  ok('educando tem seis seções fixas', t.TEMAS_ESTUDANTE.length === 6)
+
+  const grupos = t.camposPorSecao(cfg, 'professor')
+  ok('campos da área são agrupados por seção', grupos.length === 8)
+  ok('nenhum campo fica fora de uma seção', grupos.every(grupo => grupo.campos.length > 0))
+
+  const perguntaPadrao = t.perguntasDoTema(cfg, 'meus-interesses')
+  ok('perguntas do educando vêm do padrão', perguntaPadrao.length === 3)
+  const comPergunta = { ...cfg, perguntas: { ...cfg.perguntas, 'meus-interesses': ['O que você gosta?'] } }
+  ok('pergunta configurada substitui o padrão', t.perguntasDoTema(comPergunta, 'meus-interesses').length === 1)
+}
+
+// 14. pranchas de comunicação e versões do PDI
+{
+  const cfg = t.configVazia()
+  ok('pranchas vêm configuradas', cfg.pranchas.length >= 3)
+  ok('cada símbolo tem rótulo escrito', cfg.pranchas.every(c => c.simbolos.every(s => s.rotulo.trim().length > 0)))
+  ok('identidade institucional tem padrão', cfg.institucional.nomeApp === 'PDI Interativo')
+
+  const versao = t.novaVersao('estudante-1', 'Professor', 'Atualizou a área do professor', ['professor'])
+  ok('versão guarda autor e área', versao.autor === 'Professor' && versao.areas[0] === 'professor')
+  ok('versão tem identificador e data', Boolean(versao.id) && Boolean(versao.quando))
+}
+
+// 15. migração da área antiga "saúde" para "Profissionais de Apoio"
+{
+  const migrada = d.normalizarConfig({
+    versao: 2,
+    campos: {
+      saude: [{ id: 'observacoes', titulo: 'Observações', instrucao: '', tipo: 'texto', acessoOutros: 'Comentar' }],
+    },
+    permissoes: { 'u1::e1::saude': 'Comentar' },
+    autorizacoes: {
+      e1: { estudanteId: 'e1', autorizado: true, areas: ['saude'], responsavel: 'Mãe', quando: '2026-01-01' },
+    },
+  })
+  ok('campos da área antiga viram área de apoio', Boolean(migrada.campos.apoio) && !migrada.campos.saude)
+  ok('permissões da área antiga são migradas', migrada.permissoes['u1::e1::apoio'] === 'Comentar')
+  ok('autorização antiga aponta para a nova área', migrada.autorizacoes.e1.areas.includes('apoio'))
+  ok('configuração antiga ganha pranchas e identidade', migrada.pranchas.length > 0 && Boolean(migrada.institucional.nomeApp))
 }
 
 // 12. limpeza

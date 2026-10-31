@@ -95,8 +95,8 @@ const digitar = async (el, valor) => {
 const menu = (rotulo) =>
   [...container.querySelectorAll('.sidebar button.side-link')].find((b) => b.textContent.trim() === rotulo)
 
-await clicar(menu('Estudantes'))
-const abrir = [...container.querySelectorAll('button')].find((b) => /Cadastrar estudante/i.test(b.textContent))
+await clicar(menu('Educandos'))
+const abrir = [...container.querySelectorAll('button')].find((b) => /Cadastrar educando/i.test(b.textContent))
 await clicar(abrir)
 const form = container.querySelector('form')
 const inputs = [...form.querySelectorAll('input')]
@@ -107,13 +107,13 @@ await clicar(form.querySelector('button[type="submit"]'))
 await act(async () => {
   await espera(700)
 })
-ok('o estudante aparece na lista', container.textContent.includes('Ana do Banco'))
+ok('o educando aparece na lista', container.textContent.includes('Ana do Banco'))
 
 const resposta = await fetchNativo('http://127.0.0.1:3000/api/config')
 const dados = await resposta.json()
 ok('o servidor devolve a configuração do banco', resposta.status === 200)
 ok(
-  'o estudante cadastrado na tela foi gravado no Postgres',
+  'o educando cadastrado na tela foi gravado no Postgres',
   (dados.config?.estudantes ?? []).some((e) => e.nome === 'Ana do Banco'),
 )
 

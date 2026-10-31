@@ -17,19 +17,19 @@ import {
 import { PERFIS, PERFIL_PADRAO, type Perfil } from '@/lib/perfis'
 
 const descricoes: Record<Perfil, { descricao: string; icone: typeof BookOpen }> = {
-  Estudante: { descricao: 'Preencher meu plano e contar como aprendo', icone: CircleUserRound },
+  Educando: { descricao: 'Preencher meu plano e contar como aprendo', icone: CircleUserRound },
   Professor: { descricao: 'Acompanhar e contribuir pedagogicamente', icone: BookOpen },
   'Professor de AEE': {
-    descricao: 'Acompanhar o atendimento educacional especializado',
+    descricao: 'Registrar recursos e estratégias do atendimento especializado',
     icone: UsersRound,
   },
-  Família: { descricao: 'Compartilhar rotina, interesses e estratégias', icone: HeartHandshake },
-  'Profissional da Saúde': {
-    descricao: 'Registrar recomendações e acompanhamento',
+  Família: { descricao: 'Compartilhar rotina, interesses e autorizar o compartilhamento', icone: HeartHandshake },
+  'Profissional de Apoio': {
+    descricao: 'Registrar recomendações a partir do que a família autorizou',
     icone: Stethoscope,
   },
   'Usuário Mestre': {
-    descricao: 'Formatar e visualizar todo o conteúdo pedagógico',
+    descricao: 'Configurar o sistema e acompanhar todos os PDIs',
     icone: ShieldCheck,
   },
 }
@@ -57,7 +57,7 @@ export default function LoginPage() {
           <p className="eyebrow">ProfEi</p>
           <h1>PDI Interativo</h1>
           <p>
-            Um espaço seguro para o aluno, a família, os professores e os profissionais da saúde
+            Um espaço seguro para o educando, a família, os professores e os profissionais de apoio
             construírem o desenvolvimento em conjunto.
           </p>
         </div>

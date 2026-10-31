@@ -61,7 +61,7 @@ export function csvDeRespostas(
   entradasPorEstudante: Record<string, EntradaPdi[]>,
 ) {
   const linhas: string[] = [
-    ['Estudante', 'Turma', 'Escola', 'Área', 'Campo', 'Resposta', 'Quem escreveu', 'Atualizado em']
+    ['Educando', 'Turma', 'Escola', 'Área', 'Campo', 'Resposta', 'Quem escreveu', 'Atualizado em']
       .map(escapar)
       .join(';'),
   ]
@@ -92,12 +92,12 @@ export function csvDeRespostas(
   return `\uFEFF${linhas.join('\r\n')}`
 }
 
-/** Resumo por estudante (uma linha por PDI) — bom para a coordenação. */
+/** Resumo por educando (uma linha por PDI) — bom para a coordenação. */
 export function csvResumoDaEscola(
   config: Configuracao,
   resumo: Record<string, { respondidos: number; total: number }>,
 ) {
-  const linhas = [['Estudante', 'Turma', 'Escola', 'Campos respondidos', 'Campos previstos'].map(escapar).join(';')]
+  const linhas = [['Educando', 'Turma', 'Escola', 'Campos respondidos', 'Campos previstos'].map(escapar).join(';')]
   for (const estudante of config.estudantes) {
     const dados = resumo[estudante.id]
     linhas.push(

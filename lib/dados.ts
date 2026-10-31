@@ -1,17 +1,23 @@
 import {
   AREA_EVOLUCAO,
+  AREA_PERIODO,
   AREA_PROXIMOS_PASSOS,
   CHAVE_PROXIMOS_PASSOS,
   configVazia,
   camposPadraoDaArea,
   INDICADORES_PADRAO,
   novoId,
+  type AutorizacaoCompartilhamento,
   type CampoConfig,
+  type CategoriaPrancha,
   type Configuracao,
   type EntradaPdi,
+  type IdentidadeInstitucional,
+  type VersaoPdi,
   type ModoPersistencia,
   type ModoResposta,
   type NivelAcesso,
+  type PeriodoAcompanhamento,
   type RegistroEvolucao,
 } from './pdi-tipos'
 
@@ -60,25 +66,40 @@ function objeto(valor: unknown): Record<string, unknown> {
     : {}
 }
 
+const TIPOS_CAMPO: CampoConfig['tipo'][] = ['texto', 'lista', 'prancha', 'autorizacao']
+
 function normalizarCampos(bruto: unknown): Record<string, CampoConfig[]> {
   const mapa = objeto(bruto)
   const resultado: Record<string, CampoConfig[]> = {}
   for (const [area, lista] of Object.entries(mapa)) {
     if (!Array.isArray(lista)) continue
+    const padrao = camposPadraoDaArea(area)
     resultado[area] = lista.flatMap(item => {
       const campo = objeto(item)
       if (typeof campo.titulo !== 'string' || !campo.titulo.trim()) return []
+      const id = typeof campo.id === 'string' && campo.id ? campo.id : novoId()
+      // campos salvos antes das seções existirem herdam a seção do campo padrão
+      const modelo = padrao.find(padraoCampo => padraoCampo.id === id)
+      const tipo = TIPOS_CAMPO.includes(campo.tipo as CampoConfig['tipo'])
+        ? (campo.tipo as CampoConfig['tipo'])
+        : (modelo?.tipo ?? 'texto')
+      const secao =
+        typeof campo.secao === 'string' && campo.secao
+          ? campo.secao
+          : modelo?.secao
       return [
         {
-          id: typeof campo.id === 'string' && campo.id ? campo.id : novoId(),
+          id,
           titulo: campo.titulo,
           instrucao: typeof campo.instrucao === 'string' ? campo.instrucao : '',
-          tipo: campo.tipo === 'lista' ? 'lista' : 'texto',
+          tipo,
+          ...(secao ? { secao } : {}),
           acessoOutros:
             campo.acessoOutros === 'Comentar' || campo.acessoOutros === 'Sem acesso'
               ? campo.acessoOutros
               : 'Visualizar',
-          fixo: campo.fixo === true,
+          fixo: campo.fixo === true || Boolean(modelo),
+          ...(campo.permiteAudio === false ? { permiteAudio: false } : {}),
         },
       ]
     })
@@ -96,7 +117,14 @@ export function normalizarConfig(bruto: unknown): Configuracao {
   if (!bruto || typeof bruto !== 'object') return base
   const dados = bruto as Record<string, unknown>
 
-  const campos = normalizarCampos(dados.campos)
+  // migração: a área antiga "saude" passou a se chamar "apoio" (Profissionais de Apoio)
+  const camposBrutos = { ...objeto(dados.campos) } as Record<string, unknown>
+  if (camposBrutos.saude && !camposBrutos.apoio) {
+    camposBrutos.apoio = camposBrutos.saude
+    delete camposBrutos.saude
+  }
+
+  const campos = normalizarCampos(camposBrutos)
 
   // migração da v1: camposColaborativos: { area: string[] }
   const antigos = objeto(dados.camposColaborativos)
@@ -123,15 +151,102 @@ export function normalizarConfig(bruto: unknown): Configuracao {
     ? dados.indicadores.filter((item): item is string => typeof item === 'string' && !!item.trim())
     : [...INDICADORES_PADRAO]
 
+  // migração das permissões que apontavam para a área antiga
+  const permissoes = { ...(objeto(dados.permissoes) as Record<string, NivelAcesso>) }
+  for (const chave of Object.keys(permissoes)) {
+    if (!chave.endsWith('::saude')) continue
+    const nova = `${chave.slice(0, -'::saude'.length)}::apoio`
+    if (!(nova in permissoes)) permissoes[nova] = permissoes[chave]
+    delete permissoes[chave]
+  }
+
+  const autorizacoes = objeto(dados.autorizacoes) as Record<string, AutorizacaoCompartilhamento>
+  for (const autorizacao of Object.values(autorizacoes)) {
+    autorizacao.areas = (autorizacao.areas ?? []).map(area => (area === 'saude' ? 'apoio' : area))
+  }
+
   return {
     ...base,
     estudantes: Array.isArray(dados.estudantes) ? dados.estudantes : [],
     usuarios: Array.isArray(dados.usuarios) ? dados.usuarios : [],
-    permissoes: objeto(dados.permissoes) as Record<string, NivelAcesso>,
+    permissoes,
     campos: { ...base.campos, ...campos },
     modos: objeto(dados.modos) as Record<string, ModoResposta>,
     indicadores: indicadores.length > 0 ? indicadores : [...INDICADORES_PADRAO],
     historico: Array.isArray(dados.historico) ? dados.historico.slice(0, 50) : [],
+    autorizacoes,
+    pranchas: normalizarPranchas(dados.pranchas, base.pranchas),
+    institucional: normalizarInstitucional(dados.institucional, base.institucional),
+    versoes: Array.isArray(dados.versoes) ? (dados.versoes as VersaoPdi[]).slice(0, 200) : [],
+    perguntas: normalizarPerguntas(dados.perguntas, base.perguntas),
+  }
+}
+
+function normalizarPerguntas(
+  bruto: unknown,
+  padrao: Record<string, string[]>,
+): Record<string, string[]> {
+  const dados = objeto(bruto)
+  const resultado: Record<string, string[]> = { ...padrao }
+  for (const [chave, lista] of Object.entries(dados)) {
+    if (!Array.isArray(lista)) continue
+    const perguntas = lista.filter(
+      (item): item is string => typeof item === 'string' && item.trim().length > 0,
+    )
+    if (perguntas.length > 0) resultado[chave] = perguntas.map(item => item.trim())
+  }
+  return resultado
+}
+
+function normalizarPranchas(bruto: unknown, padrao: CategoriaPrancha[]): CategoriaPrancha[] {
+  if (!Array.isArray(bruto) || bruto.length === 0) return padrao
+  return bruto.flatMap(item => {
+    if (!item || typeof item !== 'object') return []
+    const categoria = item as Record<string, unknown>
+    const simbolos = Array.isArray(categoria.simbolos)
+      ? categoria.simbolos.flatMap(simbolo => {
+          if (!simbolo || typeof simbolo !== 'object') return []
+          const dadosSimbolo = simbolo as Record<string, unknown>
+          const rotulo = typeof dadosSimbolo.rotulo === 'string' ? dadosSimbolo.rotulo.trim() : ''
+          if (!rotulo) return []
+          return [
+            {
+              id: typeof dadosSimbolo.id === 'string' ? dadosSimbolo.id : novoId(),
+              rotulo,
+              simbolo: typeof dadosSimbolo.simbolo === 'string' ? dadosSimbolo.simbolo : '🔹',
+              ...(typeof dadosSimbolo.imagem === 'string' && dadosSimbolo.imagem
+                ? { imagem: dadosSimbolo.imagem }
+                : {}),
+            },
+          ]
+        })
+      : []
+    if (simbolos.length === 0) return []
+    return [
+      {
+        id: typeof categoria.id === 'string' ? categoria.id : novoId(),
+        nome:
+          typeof categoria.nome === 'string' && categoria.nome.trim()
+            ? categoria.nome.trim()
+            : 'Categoria',
+        simbolos,
+      },
+    ]
+  })
+}
+
+function normalizarInstitucional(
+  bruto: unknown,
+  padrao: IdentidadeInstitucional,
+): IdentidadeInstitucional {
+  const dados = objeto(bruto)
+  return {
+    nomeApp:
+      typeof dados.nomeApp === 'string' && dados.nomeApp.trim()
+        ? dados.nomeApp.trim()
+        : padrao.nomeApp,
+    escola: typeof dados.escola === 'string' ? dados.escola.trim() : '',
+    logoUrl: typeof dados.logoUrl === 'string' ? dados.logoUrl : '',
   }
 }
 
@@ -360,6 +475,52 @@ export async function salvarRegistroEvolucao(dados: {
     area: AREA_EVOLUCAO,
     sectionKey: `registro-${quando}-${novoId().slice(0, 8)}`,
     content: JSON.stringify({ indicador: dados.indicador, valor: dados.valor, quando }),
+    authorName: dados.autor,
+  })
+}
+
+/** Registros descritivos por período (cada período é uma entrada JSON). */
+export function lerPeriodosAcompanhamento(entradas: EntradaPdi[]): PeriodoAcompanhamento[] {
+  return entradas
+    .filter(entrada => entrada.area === AREA_PERIODO)
+    .flatMap(entrada => {
+      try {
+        const dados = JSON.parse(entrada.content) as Partial<PeriodoAcompanhamento>
+        if (!dados || typeof dados !== 'object') return []
+        const periodo =
+          typeof dados.periodo === 'string' && dados.periodo.trim() ? dados.periodo.trim() : 'Período'
+        return [
+          {
+            id: entrada.sectionKey,
+            periodo,
+            objetivos: typeof dados.objetivos === 'string' ? dados.objetivos : '',
+            estrategias: typeof dados.estrategias === 'string' ? dados.estrategias : '',
+            avancos: typeof dados.avancos === 'string' ? dados.avancos : '',
+            dificuldades: typeof dados.dificuldades === 'string' ? dados.dificuldades : '',
+            funcionou: typeof dados.funcionou === 'string' ? dados.funcionou : '',
+            mudar: typeof dados.mudar === 'string' ? dados.mudar : '',
+            novosObjetivos: typeof dados.novosObjetivos === 'string' ? dados.novosObjetivos : '',
+            autor: entrada.authorName,
+            quando: entrada.updatedAt,
+          },
+        ]
+      } catch {
+        return []
+      }
+    })
+    .sort((a, b) => b.quando.localeCompare(a.quando))
+}
+
+export async function salvarPeriodoAcompanhamento(dados: {
+  estudante: { id: string; nome: string }
+  periodo: Omit<PeriodoAcompanhamento, 'id' | 'autor' | 'quando'>
+  autor: string
+}) {
+  return salvarEntrada({
+    estudante: dados.estudante,
+    area: AREA_PERIODO,
+    sectionKey: `periodo-${novoId()}`,
+    content: JSON.stringify(dados.periodo),
     authorName: dados.autor,
   })
 }

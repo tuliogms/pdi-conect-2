@@ -1,7 +1,7 @@
 # Roteiro de teste — PDI Interativo
 
-Passo a passo para validar o aplicativo do começo ao fim, seguindo o portfólio
-(`Portfolio_PDI_Participativo_ABNT_.pdf`). Leva cerca de 12 minutos.
+Passo a passo para validar o aplicativo do começo ao fim, seguindo a especificação das oito
+áreas do PDI. Leva cerca de 15 minutos.
 
 > **Antes de começar:** a barra lateral mostra onde os dados estão sendo gravados.
 > Neste ambiente o app já está ligado a um **banco Postgres** (“Os dados estão sendo
@@ -14,162 +14,167 @@ Legenda: ✅ = o que deve acontecer.
 
 ## 0. Preparar a base
 
-O sistema começa **vazio** — nenhum estudante, usuário ou resposta de exemplo.
+O sistema começa **vazio** — nenhum educando, usuário ou resposta de exemplo.
 
 1. Abra `/` → a abertura “Pingo Saltitante” roda e cai no login.
-2. Entre como **Usuário Mestre** → aba **Estudantes** → botão **Cadastrar estudante**
+2. Entre como **Usuário Mestre** → aba **Educandos** → botão **Cadastrar educando**
    (ex.: “Ana Beatriz”, “4º ano B”, “Escola Municipal Paulo Freire”).
-   - ✅ O estudante aparece na lista com equipe vazia e progresso em 0%.
-3. Aba **Usuários** → **Cadastrar usuário**, um por vez, vinculando ao estudante:
-   estudante, professor, família, profissional da saúde.
+   - ✅ O educando aparece na lista com equipe vazia.
+3. Aba **Usuários** → **Cadastrar usuário**, um por vez, vinculando ao educando:
+   educando, professor, professor de AEE, família e profissional de apoio.
    - ✅ Cada pessoa aparece na tabela com o perfil e o vínculo corretos.
-4. Aba **Configurações** → confira o bloco **Dados da escola** (estudantes,
-   usuários, permissões e indicadores) e o **Guia rápido** com os cinco passos do
-   uso real.
+4. Aba **Configurações** → **Identidade institucional**: troque o nome do sistema, a escola e
+   envie uma logo.
+   - ✅ O nome/logo aparecem no topo e no cabeçalho do PDI consolidado.
 
 ---
 
-## 1. Visão geral e cadastros (portfólio, seções 2 e 9)
+## 1. Visão geral e cadastros (Mestre)
 
 1. Aba **Visão geral**.
-   - ✅ Quatro cartões: Estudantes, Usuários ativos, Aguardando acesso, PDIs completos.
-   - ✅ Tabela “Situação dos PDIs” com barra de progresso e o status escrito
-     (Pendente / Em andamento / Concluída).
-   - ✅ Bloco “Precisa de atenção” quando existe convite pendente ou estudante sem equipe.
+   - ✅ Cartões com Educandos, Usuários, Aguardando acesso, Permissões, Campos e Alterações.
+   - ✅ Atalhos administrativos e **histórico de alterações** com data.
 2. Aba **Usuários**.
    - ✅ Busca e filtros por perfil e status funcionam.
-   - ✅ **Cadastrar usuário**: cadastre “Ana Souza / ana@escola.br / Família / vinculada ao estudante”.
-   - ✅ Repita com o mesmo e-mail: aparece “Já existe um usuário com este e-mail”.
-   - ✅ **Editar** abre o formulário preenchido; **Desativar** troca o status.
-3. Aba **Estudantes**.
-   - ✅ Cartões com turma, escola, equipe vinculada e progresso.
-   - ✅ **Cadastrar estudante** cria o registro e o cartão aparece na hora.
-   - ✅ **Remover** pede confirmação antes de apagar.
+   - ✅ E-mail repetido é barrado com mensagem.
+3. Aba **Educandos** — editar e remover (com confirmação).
+   - ✅ Remover um educando desfaz o vínculo dos usuários, sem apagar as pessoas.
 
 ---
 
-## 2. Campo e permissões (portfólio, seções 7 e 9)
+## 2. Campos, perguntas e pranchas (Mestre)
 
-1. Aba **Campos e formulários** → aba **Professor**.
-   - ✅ Lista numerada dos campos; setas ↑ ↓ mudam a ordem.
-   - ✅ **Editar** altera título, instrução, tipo (texto/lista) e o que os outros perfis podem fazer.
-   - ✅ **Remover** funciona nos campos criados pela escola; os “padrão” só podem ser editados e reordenados.
-   - ✅ **Restaurar padrão** volta a lista original.
-2. Aba **Permissões de acesso** → escolha o estudante.
-   - ✅ Matriz pessoa × área (Estudante, Professor, Família, Saúde).
-   - ✅ Cada célula mostra `Padrão (Editar)` e permite fixar `Editar`, `Comentar`,
-     `Visualizar` ou `Sem acesso`; a célula marca **definido**.
-   - ✅ **Padrão** na última coluna limpa as escolhas daquela pessoa.
-
----
-
-## 3. Área do estudante (portfólio, seção 3)
-
-1. Saia e entre como **Estudante**.
-2. **Meu PDI**.
-   - ✅ Os **6 tópicos fixos** aparecem como lista, com o estado de cada um.
-   - ✅ Alternância **Descritivo | Perguntas** por tópico.
-   - ✅ Botão **Ouvir** (quando a leitura em voz alta está ligada).
-3. Escreva em **Meu perfil** → **Salvar**.
-   - ✅ O botão passa para “Salvo” e aparece “quem · data/hora”.
-   - ✅ O progresso sobe para **1 de 6** no cartão do tópico e no topo da lista.
-4. Em **Meus interesses**, troque para **Perguntas** e responda uma.
-   - ✅ As perguntas têm campos separados.
-   - ✅ Ao voltar para **Descritivo**, o texto anterior continua salvo.
-5. Responda um tópico como **Professor** (área do estudante é leitura): confirme que
-   não há botão Salvar ali.
+1. Aba **Campos e formulários** → escolha a área **Área do Professor**.
+   - ✅ Os campos aparecem agrupados por seção (Identificação, Observações pedagógicas,
+     Potencialidades, Dificuldades e barreiras, Estratégias, Adaptações, Objetivos,
+     Acompanhamento) — oito seções.
+2. Adicione um campo novo e reordene com ↑ ↓.
+   - ✅ O campo novo entra na seção escolhida e a ordem é a mesma do PDF.
+3. Role até **Perguntas norteadoras do educando**: adicione e remova perguntas de uma seção.
+   - ✅ As perguntas aparecem no formato “Perguntas” do educando.
+4. Aba **Pranchas de comunicação**: crie uma prancha, adicione símbolos e remova um símbolo.
+   - ✅ Cada símbolo tem imagem (emoji) e **nome escrito**.
 
 ---
 
-## 4. Área do professor, família e saúde (portfólio, seções 5, 6 e 7)
+## 3. Área do educando (6 seções + áudio + prancha)
 
-1. Entre como **Professor** → **Meus alunos**.
-   - ✅ Cartão com nome, turma, situação do PDI, etapas e **chips de potencialidades**.
-   - ✅ **Abrir PDI** leva ao plano do estudante.
-2. Em **PDI do estudante**, aba **Professor**:
-   - ✅ Campos de texto, listas em chips (adicione “Criatividade”) e botão **Salvar**.
-   - ✅ **Comentar** grava um comentário identificado, sem mudar a resposta.
-3. Troque para as abas **Família** e **Saúde**:
-   - ✅ Aparecem em leitura (selo **Visualizar**) — o professor não edita a área dos outros.
-4. Entre como **Família** (`/dashboard?perfil=familia`) → **PDI do estudante** → aba **Família**.
-   - ✅ Agora a área da família é editável, com os campos configurados pela escola.
-5. Entre como **Profissional da Saúde** e repita na aba **Saúde**.
-6. Volte como **Usuário Mestre**, em **Permissões**, marque “Sem acesso” para a Família
-   na área da Saúde e confirme como Família que a aba some ou fica bloqueada.
-
----
-
-## 5. Acessibilidade (portfólio, seção 4)
-
-1. Abra **Acessibilidade** (menu ou botão do topo).
-2. Ligue **Ouvir os textos** → **Ouvir exemplo**.
-   - ✅ Fala em português; **Pausar/Continuar/Parar** funcionam.
-   - ✅ Se o navegador não suportar, aparece um aviso claro (nada quebra).
-3. Ajuste **Velocidade da voz** e ouça de novo.
-4. Ligue **Mostrar botão de microfone** → volte a **Meu PDI**.
-   - ✅ Cada campo de texto ganha o microfone (Chrome/Edge/Android).
-5. Ligue **Alto contraste** e **Botões maiores** e use **A+**.
-   - ✅ A interface muda na hora, e as escolhas continuam depois de recarregar.
-6. Use **Tab** por toda a tela: o foco é sempre visível. **Esc** fecha o menu no celular.
+1. Saia e entre como **Educando** → aba **Meu PDI**.
+   - ✅ A aba **Educando** já vem aberta, com as seis seções.
+2. Escreva em **Meu perfil** e clique **Salvar**.
+   - ✅ “Resposta salva no banco de dados” e a linha “Última versão de … · data”.
+3. Troque o formato para **Perguntas** e responda uma pergunta.
+   - ✅ A pergunta aparece separada e conta no progresso (ex.: 2/6 seções respondidas).
+4. Em qualquer seção, toque em **Prancha de comunicação**.
+   - ✅ Escolha “Vários símbolos”, toque em dois símbolos, veja a frase montada,
+     **Ouvir** lê a frase e **Usar esta frase** coloca o texto na resposta.
+   - ✅ “Um símbolo” envia só o símbolo escolhido.
+5. Toque em **Responder em áudio** e grave alguns segundos.
+   - ✅ O áudio aparece com player e o botão **Remover áudio** (o botão só existe se o
+     navegador oferecer microfone).
+6. Confira as abas das outras áreas.
+   - ✅ Para o educando, as áreas dos adultos aparecem em **somente leitura** (sem “Salvar”).
 
 ---
 
-## 6. Acompanhamento (portfólio, seção 8)
+## 4. Professor e AEE (8 e 9 seções)
 
-1. Como **Professor**, abra **Acompanhamento**.
-   - ✅ Cartões de Leitura, Escrita e Interação social com último valor e média.
-2. Escolha o nível (1 a 5) e toque em **Registrar observação**.
-   - ✅ O gráfico aparece/atualiza e o registro entra na tabela com autor e data.
-3. Escreva em **Próximos passos** → **Salvar próximos passos**.
-4. Como **Usuário Mestre**, role até **Indicadores acompanhados** e adicione “Comunicação oral”.
-   - ✅ O novo indicador aparece nos cartões e no formulário de registro.
-
----
-
-## 7. PDI consolidado e PDF (portfólio, seção 9)
-
-1. Abra **PDI consolidado** (qualquer perfil).
-   - ✅ Cabeçalho com logos, nome, turma/escola, situação e data de emissão.
-   - ✅ Etapas do PDI com status, “O que o estudante conta”, contribuições de cada
-     área com autor/data, evolução e próximos passos.
-2. Toque em **Gerar PDF** → escolha **Salvar como PDF**.
-   - ✅ O menu, os botões e os avisos **não** saem no documento.
-   - ✅ O texto e as tabelas saem legíveis, sem cortar as seções.
+1. Entre como **Professor** → **Meu PDI**.
+   - ✅ A aba **Professor** abre por padrão, com as oito seções.
+2. Salve uma observação pedagógica e adicione um item em **Potencialidades**.
+   - ✅ Os itens viram chips e ficam salvos com autor e data.
+3. Abra a aba **AEE**.
+   - ✅ Somente leitura para o professor; as nove seções aparecem.
+4. Entre como **Professor de AEE** e preencha **Recursos de acessibilidade** e
+   **Orientações para os professores**.
+   - ✅ Ficam gravados na área do AEE e aparecem no consolidado.
 
 ---
 
-## 8. Backup e planilha (gestor)
+## 5. Família: rotina e autorização de compartilhamento (10 seções)
 
-1. **Configurações** → **Exportar backup**.
-   - ✅ Baixa um `.json` com cadastros, permissões, campos e respostas.
-2. **Exportar planilha (CSV)**.
-   - ✅ Baixa um `.csv` que abre no Excel com acentos e uma linha por resposta.
-3. **Apagar todos os dados** → confirme.
-   - ✅ Estudantes, usuários e respostas somem e os campos voltam ao padrão.
-4. **Importar backup** → escolha o arquivo do passo 1.
-   - ✅ Os cadastros e as respostas voltam e a página recarrega.
+1. Entre como **Família** → **Meu PDI**.
+   - ✅ A aba **Família** abre por padrão, com as dez seções.
+2. Preencha **Como é a rotina em casa** e salve.
+3. Vá até **Autorização de compartilhamento**.
+   - ✅ O cartão começa **Pendente**.
+   - ✅ Marque “Autorizo o compartilhamento”, escolha as áreas e preencha quem autoriza.
+   - ✅ **Registrar autorização** → o cartão fica **Autorizado** com data e responsável.
+   - ✅ **Revogar autorização** pede o motivo e volta o cartão para pendente.
 
 ---
 
-## 9. Celular e leitor de tela
+## 6. Profissionais de Apoio (acesso só ao autorizado)
 
-1. Abra o app no celular (ou estreite a janela do navegador).
-   - ✅ O botão ☰ aparece no topo; tocar abre o menu deslizando por cima.
-   - ✅ Tocar fora, tocar em ☰ de novo ou apertar **Esc** fecha.
-   - ✅ Ao escolher uma aba, o menu fecha e a tela muda.
-2. Ative o **TalkBack** (Android) ou **VoiceOver** (iPhone).
-   - ✅ Os botões são anunciados pelo nome; os status são lidos com o texto
-     (“Concluída”, “Em andamento”, “Pendente”).
+1. **Antes de autorizar** (ou depois de revogar), entre como **Profissional de Apoio**.
+   - ✅ Só a aba **Profissionais de Apoio** aparece; nenhuma outra área é acessível.
+2. Com a autorização vigente, entre de novo.
+   - ✅ Aparecem apenas a própria aba e **as áreas que a família liberou** (em leitura).
+3. Preencha **Identificação profissional** (nome, área de atuação, registro) e salve.
+   - ✅ A contribuição fica registrada com o nome de quem escreveu.
+
+---
+
+## 7. Construção do PDI: consolidado, versões e PDF
+
+1. Entre como **Usuário Mestre** → **PDI consolidado**.
+   - ✅ **Situação de cada área** com selo (Concluída / Em andamento / Pendente).
+   - ✅ Cada contribuição mostra o autor e a data.
+   - ✅ **Histórico de versões do PDI** aparece ao final.
+2. Toque em **Gerar PDF** → “Salvar como PDF”.
+   - ✅ O documento sai com a logo/nome da escola, as áreas e a autoria.
+3. Aba **Versões do PDI**.
+   - ✅ Lista de tudo o que foi salvo (educando, data, autor, área, o que mudou).
+   - ✅ **Baixar relatório** gera o CSV do histórico.
+4. Aba **Planos de PDI** → abrir um plano.
+   - ✅ As cinco abas aparecem e o Mestre edita qualquer uma delas.
+
+---
+
+## 8. Acompanhamento por período
+
+1. Aba **Acompanhamento** → **Novo registro**.
+   - ✅ Registre período, objetivos, estratégias em uso, progressos, dificuldades que
+     permanecem, o que funcionou, o que precisa mudar e novos objetivos.
+   - ✅ O registro entra na **linha do tempo** com autor e data.
+2. Registre um valor na escala de 1 a 5.
+   - ✅ O gráfico de evolução aparece e a legenda tem o nome de cada indicador.
+3. **Baixar relatório** do acompanhamento.
+   - ✅ CSV com uma linha por período.
+
+---
+
+## 9. Permissões, backup e privacidade
+
+1. Como Mestre, aba **Permissões de acesso**.
+   - ✅ A matriz mostra Educando, Professor, AEE, Família e Profissionais de Apoio.
+   - ✅ Mudar para **Sem acesso** esconde a área daquela pessoa na hora seguinte.
+2. **Configurações** → **Exportar dados (JSON)**.
+   - ✅ O arquivo tem configuração, educandos e respostas.
+3. Entre como **Educando** → **Acessibilidade** → ligue alto contraste e botões grandes.
+   - ✅ As classes aparecem no app e a preferência fica gravada.
+
+---
+
+## 10. Celular e leitor de tela
+
+1. Abra em uma janela estreita (ou no celular).
+   - ✅ O botão de menu aparece; tocar abre a barra lateral; `Esc` e toque fora fecham.
+   - ✅ Nenhuma aba fica inalcançável.
+2. Com um leitor de tela (TalkBack/VoiceOver/NVDA), percorra a aba do educando.
+   - ✅ Cada seção, pergunta e botão tem nome; os símbolos das pranchas têm o rótulo escrito.
 
 ---
 
 ## Checklist rápido
 
-- [ ] Aba abre em todos os perfis (não fica em branco)
-- [ ] Resposta salva sobrevive ao recarregar a página
-- [ ] Permissão “Sem acesso” realmente bloqueia
-- [ ] Campo novo aparece no PDI e no PDF na ordem configurada
-- [ ] Gráfico de acompanhamento desenha após o primeiro registro
-- [ ] PDF sai sem menus e sem botões
-- [ ] Backup exporta e reimporta sem perder dados
-- [ ] Menu abre e fecha no celular
+- [ ] Abre no login e a abertura roda
+- [ ] Mestre cadastra educando, equipe e pranchas
+- [ ] Educando responde por texto, áudio e prancha
+- [ ] Professor e AEE preenchem as próprias áreas
+- [ ] Família preenche e autoriza/revoga o compartilhamento
+- [ ] Profissional de apoio só vê o que foi autorizado
+- [ ] Consolidado com autoria + PDF
+- [ ] Histórico de versões e relatórios CSV
+- [ ] Acompanhamento por período com gráfico
+- [ ] Menu utilizável no celular e com leitor de tela

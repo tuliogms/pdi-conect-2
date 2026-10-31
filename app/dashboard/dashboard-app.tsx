@@ -59,11 +59,13 @@ type ItemMenu = SecaoAdmin | SecaoParticipante
 const menuAdmin: SecaoAdmin[] = [
   'Visão geral',
   'Usuários',
-  'Estudantes',
+  'Educandos',
   'Planos de PDI',
   'PDI consolidado',
+  'Versões do PDI',
   'Permissões de acesso',
   'Campos e formulários',
+  'Pranchas de comunicação',
   'Acompanhamento',
   'Configurações',
 ]
@@ -83,10 +85,11 @@ function iconeDoItem(item: ItemMenu) {
   if (item === 'Usuários' || item === 'Meus alunos') return <Users aria-hidden="true" />
   if (item === 'Permissões de acesso') return <ShieldCheck aria-hidden="true" />
   if (item === 'Acompanhamento') return <BarChart3 aria-hidden="true" />
-  if (item === 'Campos e formulários') return <LayoutGrid aria-hidden="true" />
+  if (item === 'Campos e formulários' || item === 'Pranchas de comunicação')
+    return <LayoutGrid aria-hidden="true" />
   if (item === 'Configurações') return <Settings2 aria-hidden="true" />
   if (item === 'Acessibilidade') return <Ear aria-hidden="true" />
-  if (item === 'Estudantes') return <ClipboardList aria-hidden="true" />
+  if (item === 'Educandos') return <ClipboardList aria-hidden="true" />
   return <FileText aria-hidden="true" />
 }
 
@@ -285,9 +288,13 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
           {menuAberto ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
         </button>
         <div className="brand-lockup">
-          <img className="app-logo" src="/logo-uemg.png" alt="UEMG" />
+          <img
+            className="app-logo"
+            src={config?.institucional.logoUrl || '/logo-uemg.png'}
+            alt={config?.institucional.escola || 'Logo da instituição'}
+          />
           <div>
-            <strong>PDI Interativo</strong>
+            <strong>{config?.institucional.nomeApp || 'PDI Interativo'}</strong>
           </div>
         </div>
         <div className="top-actions">
@@ -335,7 +342,12 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
               <span className="logo-separator" aria-hidden="true" />
               <img src="/logo-uemg.png" alt="UEMG" />
             </div>
-            <strong className="sidebar-app-name">PDI Interativo</strong>
+            <strong className="sidebar-app-name">
+              {config?.institucional.nomeApp || 'PDI Interativo'}
+            </strong>
+            {config?.institucional.escola && (
+              <span className="muted small-note">{config.institucional.escola}</span>
+            )}
           </div>
           <p className="eyebrow">{admin ? 'Administração do sistema' : 'Navegação principal'}</p>
           {menu.map(item => (
@@ -473,6 +485,7 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
               avisar={avisar}
               acessibilidade={acessibilidade}
               definirModo={definirModo}
+              atualizar={atualizar}
               estudantesPermitidos={estudantesDoUsuario}
               {...(estudanteVisivel ? { estudanteIdInicial: estudanteVisivel.id } : {})}
             />
@@ -509,12 +522,12 @@ function InicioParticipante({
     <section>
       <div className="welcome-row admin-heading">
         <div>
-          <p className="eyebrow">PDI Interativo</p>
+          <p className="eyebrow">{config.institucional.nomeApp || 'PDI Interativo'}</p>
           <h1>Olá, {contexto.nome}!</h1>
           <p className="muted">
             {estudante
               ? `PDI de ${estudante.nome} — ${concluidas} de ${progressos.length} etapas concluídas.`
-              : 'Nenhum estudante cadastrado ainda.'}
+              : 'Nenhum educando cadastrado ainda.'}
           </p>
         </div>
         <button className="primary-btn" onClick={() => onNavegar('Meu PDI')}>
@@ -525,8 +538,8 @@ function InicioParticipante({
       {!estudante ? (
         <div className="empty-state">
           <Users aria-hidden="true" />
-          <strong>Nenhum estudante cadastrado ainda</strong>
-          <p>Peça à administração da escola para cadastrar o estudante e vincular você a ele.</p>
+          <strong>Nenhum educando cadastrado ainda</strong>
+          <p>Peça à administração da escola para cadastrar o educando e vincular você a ele.</p>
         </div>
       ) : (
         <>
@@ -538,8 +551,8 @@ function InicioParticipante({
             }}
           />
           <p className="muted small-note">
-            A ordem sugerida é estudante → professor → família → saúde, mas as etapas podem ser
-            preenchidas ao mesmo tempo.
+            A ordem sugerida é educando → professor → AEE → família → profissionais de apoio,
+            mas as etapas podem ser preenchidas ao mesmo tempo.
           </p>
         </>
       )}
@@ -578,8 +591,8 @@ function ConfiguracoesParticipante({
         </p>
         <p className="muted">
           {estudante
-            ? `Estudante vinculado: ${estudante.nome}.`
-            : 'Seu cadastro ainda não está vinculado a um estudante.'}
+            ? `Educando vinculado: ${estudante.nome}.`
+            : 'Seu cadastro ainda não está vinculado a um educando.'}
         </p>
         <p className="muted">
           Onde os dados ficam:{' '}

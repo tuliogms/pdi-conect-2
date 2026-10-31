@@ -26,7 +26,9 @@ import {
   configuracaoLimpa,
   NIVEIS_ACESSO,
   novoId,
+  perguntasDoTema,
   progressoGeral,
+  secoesDaArea,
   TEMAS_ESTUDANTE,
   tituloDaArea,
   AREA_ESTUDANTE,
@@ -66,10 +68,12 @@ export default function PainelAdmin(props: PropsPainel) {
   const { secao } = props
 
   if (secao === 'Usuários') return <PainelUsuarios {...props} />
-  if (secao === 'Estudantes') return <PainelEstudantes {...props} />
+  if (secao === 'Educandos') return <PainelEstudantes {...props} />
   if (secao === 'Planos de PDI') return <PainelPlanos {...props} />
   if (secao === 'Permissões de acesso') return <PainelPermissoes {...props} />
   if (secao === 'Campos e formulários') return <PainelCampos {...props} />
+  if (secao === 'Pranchas de comunicação') return <PainelPranchas {...props} />
+  if (secao === 'Versões do PDI') return <PainelVersoes {...props} />
   if (secao === 'Acompanhamento')
     return (
       <Acompanhamento
@@ -90,7 +94,7 @@ function VisaoGeral({ config, onNavegar }: PropsPainel) {
   const aguardando = config.usuarios.filter(usuario => usuario.status === 'Aguardando').length
 
   const cartoes: Array<[string, string]> = [
-    ['Estudantes', plural(config.estudantes.length, 'cadastrado', 'cadastrados')],
+    ['Educandos', plural(config.estudantes.length, 'cadastrado', 'cadastrados')],
     ['Usuários', plural(config.usuarios.length, 'cadastrado', 'cadastrados')],
     ['Aguardando acesso', plural(aguardando, 'usuário', 'usuários')],
     ['Permissões definidas', plural(Object.keys(config.permissoes).length, 'área', 'áreas')],
@@ -107,7 +111,7 @@ function VisaoGeral({ config, onNavegar }: PropsPainel) {
 
   const atalhos: SecaoAdmin[] = [
     'Usuários',
-    'Estudantes',
+    'Educandos',
     'Planos de PDI',
     'PDI consolidado',
     'Permissões de acesso',
@@ -310,7 +314,7 @@ function PainelUsuarios({ config, atualizar, avisar }: PropsPainel) {
     <section>
       <Cabecalho
         titulo="Usuários"
-        descricao="Cadastre quem participa do PDI, o perfil de cada pessoa e o estudante vinculado."
+        descricao="Cadastre quem participa do PDI, o perfil de cada pessoa e o educando vinculado."
         acao={formulario ? undefined : 'Cadastrar usuário'}
         onAction={abrirCadastro}
       />
@@ -354,7 +358,7 @@ function PainelUsuarios({ config, atualizar, avisar }: PropsPainel) {
               </select>
             </label>
             <label>
-              Estudante vinculado
+              Educando vinculado
               <select
                 value={formulario.estudanteId}
                 onChange={evento =>
@@ -451,7 +455,7 @@ function PainelUsuarios({ config, atualizar, avisar }: PropsPainel) {
           <div className="table-head">
             <span>Usuário</span>
             <span>Perfil</span>
-            <span>Estudante vinculado</span>
+            <span>Educando vinculado</span>
             <span>Status</span>
             <span>Ações</span>
           </div>
@@ -464,7 +468,7 @@ function PainelUsuarios({ config, atualizar, avisar }: PropsPainel) {
               <span>{usuario.perfil}</span>
               <span>
                 {usuario.estudanteId
-                  ? estudantesPorId.get(usuario.estudanteId) ?? 'Estudante removido'
+                  ? estudantesPorId.get(usuario.estudanteId) ?? 'Educando removido'
                   : 'Sem vínculo'}
               </span>
               <span className={`status-pill ${usuario.status === 'Ativo' ? 'success' : ''}`}>
@@ -508,7 +512,7 @@ function PainelUsuarios({ config, atualizar, avisar }: PropsPainel) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Estudantes                                                          */
+/* Educandos                                                           */
 /* ------------------------------------------------------------------ */
 
 type FormularioEstudante = { nome: string; serie: string; escola: string }
@@ -534,7 +538,7 @@ function PainelEstudantes({ config, atualizar, avisar, onNavegar }: PropsPainel)
 
     const nome = formulario.nome.trim()
     if (nome.length < 3) {
-      setErro('Informe o nome do estudante (pelo menos 3 caracteres).')
+      setErro('Informe o nome do educando (pelo menos 3 caracteres).')
       return
     }
 
@@ -550,13 +554,13 @@ function PainelEstudantes({ config, atualizar, avisar, onNavegar }: PropsPainel)
         }),
         `Cadastro de ${nome} atualizado`,
       )
-      avisar('Estudante atualizado.')
+      avisar('Educando atualizado.')
     } else {
       atualizar(
         atual => ({ ...atual, estudantes: [...atual.estudantes, { id: novoId(), ...dados }] }),
-        `${nome} cadastrado como estudante`,
+        `${nome} cadastrado como educando`,
       )
-      avisar('Estudante cadastrado. O PDI já pode ser preenchido.')
+      avisar('Educando cadastrado. O PDI já pode ser preenchido.')
     }
 
     setFormulario(null)
@@ -582,15 +586,15 @@ function PainelEstudantes({ config, atualizar, avisar, onNavegar }: PropsPainel)
       `Cadastro de ${estudante.nome} removido`,
     )
     setConfirmando(null)
-    avisar('Estudante removido. Os usuários ficaram sem vínculo.')
+    avisar('Educando removido. Os usuários ficaram sem vínculo.')
   }
 
   return (
     <section>
       <Cabecalho
-        titulo="Estudantes"
-        descricao="Cadastre os estudantes cujos PDIs serão preenchidos pela equipe."
-        acao={formulario ? undefined : 'Cadastrar estudante'}
+        titulo="Educandos"
+        descricao="Cadastre os educandos cujos PDIs serão preenchidos pela equipe."
+        acao={formulario ? undefined : 'Cadastrar educando'}
         onAction={() => {
           setFormulario({ nome: '', serie: '', escola: '' })
           setEditandoId(null)
@@ -602,7 +606,7 @@ function PainelEstudantes({ config, atualizar, avisar, onNavegar }: PropsPainel)
         <form className="convite-form" onSubmit={salvar}>
           <div className="form-grid">
             <label>
-              Nome do estudante
+              Nome do educando
               <input
                 value={formulario.nome}
                 onChange={evento => setFormulario({ ...formulario, nome: evento.target.value })}
@@ -657,13 +661,13 @@ function PainelEstudantes({ config, atualizar, avisar, onNavegar }: PropsPainel)
       {config.estudantes.length === 0 ? (
         <div className="empty-state">
           <Users aria-hidden="true" />
-          <strong>Nenhum estudante cadastrado ainda</strong>
-          <p>Cadastre o primeiro estudante para liberar o preenchimento do PDI.</p>
+          <strong>Nenhum educando cadastrado ainda</strong>
+          <p>Cadastre o primeiro educando para liberar o preenchimento do PDI.</p>
         </div>
       ) : (
-        <div className="admin-table" aria-label="Lista de estudantes">
+        <div className="admin-table" aria-label="Lista de educandos">
           <div className="table-head estudantes">
-            <span>Estudante</span>
+            <span>Educando</span>
             <span>Turma</span>
             <span>Escola</span>
             <span>Vínculos</span>
@@ -747,7 +751,7 @@ function PainelPlanos(props: PropsPainel) {
     <section>
       <Cabecalho
         titulo="Planos de PDI"
-        descricao="Abra o plano de um estudante para ler e complementar as respostas."
+        descricao="Abra o plano de um educando para ler e complementar as respostas."
       />
 
       {config.estudantes.length === 0 ? (
@@ -755,9 +759,9 @@ function PainelPlanos(props: PropsPainel) {
           <FileText aria-hidden="true" />
           <strong>Nenhum PDI disponível</strong>
           <p>
-            Cadastre um estudante primeiro.{' '}
-            <button className="text-link" onClick={() => onNavegar('Estudantes')}>
-              Ir para Estudantes
+            Cadastre um educando primeiro.{' '}
+            <button className="text-link" onClick={() => onNavegar('Educandos')}>
+              Ir para Educandos
             </button>
           </p>
         </div>
@@ -800,7 +804,7 @@ function PainelPermissoes({ config, atualizar, avisar }: PropsPainel) {
       <section>
         <Cabecalho
           titulo="Permissões de acesso"
-          descricao="Defina o que cada pessoa pode fazer no PDI de cada estudante."
+          descricao="Defina o que cada pessoa pode fazer no PDI de cada educando."
         />
         <div className="empty-state">
           <Users aria-hidden="true" />
@@ -819,12 +823,12 @@ function PainelPermissoes({ config, atualizar, avisar }: PropsPainel) {
       <section>
         <Cabecalho
           titulo="Permissões de acesso"
-          descricao="Defina o que cada pessoa pode fazer no PDI de cada estudante."
+          descricao="Defina o que cada pessoa pode fazer no PDI de cada educando."
         />
         <div className="empty-state">
           <FileText aria-hidden="true" />
-          <strong>Nenhum estudante cadastrado</strong>
-          <p>As permissões são sempre ligadas a um estudante. Cadastre um estudante primeiro.</p>
+          <strong>Nenhum educando cadastrado</strong>
+          <p>As permissões são sempre ligadas a um educando. Cadastre um educando primeiro.</p>
         </div>
       </section>
     )
@@ -833,7 +837,7 @@ function PainelPermissoes({ config, atualizar, avisar }: PropsPainel) {
   const padrao = (areaChave: string): NivelAcesso => {
     const area = AREAS_COLABORATIVAS.find(item => item.chave === areaChave)
     if (area && usuario.perfil === area.perfil) return 'Editar'
-    if (areaChave === AREA_ESTUDANTE.chave && usuario.perfil === 'Estudante') return 'Editar'
+    if (areaChave === AREA_ESTUDANTE.chave && usuario.perfil === 'Educando') return 'Editar'
     return 'Visualizar'
   }
 
@@ -885,9 +889,9 @@ function PainelPermissoes({ config, atualizar, avisar }: PropsPainel) {
           </select>
         </label>
         <label>
-          Estudante
+          Educando
           <select
-            aria-label="Selecionar estudante"
+            aria-label="Selecionar educando"
             value={estudante.id}
             onChange={evento => {
               setEstudanteId(evento.target.value)
@@ -1018,7 +1022,7 @@ function PainelCampos({ config, atualizar, avisar }: PropsPainel) {
     <section>
       <Cabecalho
         titulo="Campos e formulários"
-        descricao="Adapte as áreas ao modelo de PDI da sua rede. Os seis tópicos do estudante são fixos."
+        descricao="Adapte as áreas ao modelo de PDI da sua rede. As seis seções do educando são fixas; as perguntas são configuráveis."
         acao={editando ? undefined : 'Adicionar campo'}
         onAction={novoCampo}
       />
@@ -1070,8 +1074,25 @@ function PainelCampos({ config, atualizar, avisar }: PropsPainel) {
                   setEditando({ ...editando, tipo: evento.target.value as CampoConfig['tipo'] })
                 }
               >
-                <option value="texto">Texto livre</option>
+                <option value="texto">Texto livre (com áudio e prancha)</option>
                 <option value="lista">Lista de itens</option>
+                <option value="prancha">Prancha de comunicação</option>
+              </select>
+            </label>
+            <label>
+              Seção da área
+              <select
+                value={editando.secao ?? ''}
+                onChange={evento =>
+                  setEditando({ ...editando, secao: evento.target.value || undefined })
+                }
+              >
+                <option value="">Primeira seção</option>
+                {secoesDaArea(areaChave).map(secao => (
+                  <option key={secao.chave} value={secao.chave}>
+                    {secao.titulo}
+                  </option>
+                ))}
               </select>
             </label>
             <label>
@@ -1171,8 +1192,415 @@ function PainelCampos({ config, atualizar, avisar }: PropsPainel) {
       </div>
 
       <p className="muted">
-        Tópicos fixos do estudante: {TEMAS_ESTUDANTE.map(tema => tema.titulo).join(' · ')}.
+        Seções fixas do educando: {TEMAS_ESTUDANTE.map(tema => tema.titulo).join(' · ')}.
       </p>
+
+      <PerguntasDoEducando config={config} atualizar={atualizar} avisar={avisar} />
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Perguntas norteadoras do educando                                   */
+/* ------------------------------------------------------------------ */
+
+function PerguntasDoEducando({
+  config,
+  atualizar,
+  avisar,
+}: {
+  config: Configuracao
+  atualizar: AtualizarConfig
+  avisar: Avisar
+}) {
+  const [temaAberto, setTemaAberto] = useState(TEMAS_ESTUDANTE[0]?.chave ?? '')
+  const [nova, setNova] = useState('')
+  const perguntas = perguntasDoTema(config, temaAberto)
+
+  function gravar(lista: string[], texto: string) {
+    const limpas = lista.map(item => item.trim()).filter(Boolean)
+    if (limpas.length === 0) {
+      avisar('Cada seção precisa de pelo menos uma pergunta.')
+      return
+    }
+    atualizar(
+      atual => ({ ...atual, perguntas: { ...atual.perguntas, [temaAberto]: limpas } }),
+      texto,
+    )
+  }
+
+  return (
+    <div className="perguntas-config">
+      <h2 className="pdi-heading">Perguntas norteadoras do educando</h2>
+      <p className="muted small-note">
+        As seis seções são fixas. O que a escola pode ajustar são as perguntas que aparecem em
+        “Perguntas” dentro de cada seção.
+      </p>
+
+      <label className="student-picker">
+        Seção
+        <select value={temaAberto} onChange={evento => setTemaAberto(evento.target.value)}>
+          {TEMAS_ESTUDANTE.map(tema => (
+            <option key={tema.chave} value={tema.chave}>
+              {tema.titulo}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <ul className="perguntas-lista-config">
+        {perguntas.map((pergunta, indice) => (
+          <li key={`${temaAberto}-${indice}`}>
+            <input
+              value={pergunta}
+              aria-label={`Pergunta ${indice + 1} de ${temaAberto}`}
+              onChange={evento => {
+                const lista = [...perguntas]
+                lista[indice] = evento.target.value
+                gravar(lista, 'Pergunta norteadora atualizada')
+              }}
+            />
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label={`Remover a pergunta ${indice + 1}`}
+              onClick={() =>
+                gravar(
+                  perguntas.filter((_, posicao) => posicao !== indice),
+                  'Pergunta norteadora removida',
+                )
+              }
+            >
+              <X aria-hidden="true" />
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <div className="chip-form">
+        <label className="sr-only" htmlFor="nova-pergunta">
+          Nova pergunta
+        </label>
+        <input
+          id="nova-pergunta"
+          value={nova}
+          onChange={evento => setNova(evento.target.value)}
+          placeholder="Escreva uma nova pergunta"
+        />
+        <button
+          type="button"
+          className="soft-btn"
+          onClick={() => {
+            if (!nova.trim()) return
+            gravar([...perguntas, nova], 'Pergunta norteadora criada')
+            setNova('')
+          }}
+        >
+          <Plus aria-hidden="true" /> Adicionar pergunta
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Pranchas de comunicação                                             */
+/* ------------------------------------------------------------------ */
+
+function PainelPranchas({ config, atualizar, avisar }: PropsPainel) {
+  const [categoriaId, setCategoriaId] = useState(config.pranchas[0]?.id ?? '')
+  const [novaCategoria, setNovaCategoria] = useState('')
+  const [rotulo, setRotulo] = useState('')
+  const [simbolo, setSimbolo] = useState('')
+  const [confirmando, setConfirmando] = useState<string | null>(null)
+
+  const categoria = config.pranchas.find(item => item.id === categoriaId) ?? config.pranchas[0]
+
+  function gravar(pranchas: Configuracao['pranchas'], texto: string) {
+    atualizar(atual => ({ ...atual, pranchas }), texto)
+  }
+
+  function criarCategoria() {
+    const nome = novaCategoria.trim()
+    if (!nome) return
+    const nova = { id: novoId(), nome, simbolos: [] }
+    gravar([...config.pranchas, nova], `Prancha “${nome}” criada`)
+    setCategoriaId(nova.id)
+    setNovaCategoria('')
+    avisar('Prancha criada. Agora adicione os símbolos.')
+  }
+
+  function renomearCategoria(nome: string) {
+    if (!categoria || !nome.trim()) return
+    gravar(
+      config.pranchas.map(item =>
+        item.id === categoria.id ? { ...item, nome: nome.trim() } : item,
+      ),
+      `Prancha “${nome.trim()}” renomeada`,
+    )
+  }
+
+  function removerCategoria(id: string) {
+    gravar(
+      config.pranchas.filter(item => item.id !== id),
+      'Prancha removida',
+    )
+    setCategoriaId(config.pranchas.find(item => item.id !== id)?.id ?? '')
+    setConfirmando(null)
+    avisar('Prancha removida.')
+  }
+
+  function adicionarSimbolo() {
+    if (!categoria) return
+    const texto = rotulo.trim()
+    if (!texto) return
+    gravar(
+      config.pranchas.map(item =>
+        item.id === categoria.id
+          ? {
+              ...item,
+              simbolos: [
+                ...item.simbolos,
+                { id: novoId(), rotulo: texto, simbolo: simbolo.trim() || '🔹' },
+              ],
+            }
+          : item,
+      ),
+      `Símbolo “${texto}” adicionado à prancha ${categoria.nome}`,
+    )
+    setRotulo('')
+    setSimbolo('')
+    avisar('Símbolo adicionado.')
+  }
+
+  return (
+    <section>
+      <Cabecalho
+        titulo="Pranchas de comunicação"
+        descricao="As pranchas usadas nas respostas do educando. Cada símbolo tem imagem e nome escrito, para funcionar também com leitor de tela."
+      />
+
+      <div className="form-grid">
+        <label>
+          Nova prancha (categoria)
+          <input
+            value={novaCategoria}
+            onChange={evento => setNovaCategoria(evento.target.value)}
+            placeholder="Ex.: Alimentos"
+          />
+        </label>
+        <div className="form-actions inicio">
+          <button type="button" className="primary-btn" onClick={criarCategoria}>
+            <Plus aria-hidden="true" /> Criar prancha
+          </button>
+        </div>
+      </div>
+
+      {config.pranchas.length === 0 ? (
+        <div className="empty-state">
+          <LayoutGrid aria-hidden="true" />
+          <strong>Nenhuma prancha configurada</strong>
+          <p>Crie a primeira prancha para que os símbolos apareçam nas respostas.</p>
+        </div>
+      ) : (
+        <>
+          <div className="area-tabs" role="tablist" aria-label="Pranchas cadastradas">
+            {config.pranchas.map(item => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={categoria?.id === item.id}
+                className={`area-tab ${categoria?.id === item.id ? 'active' : ''}`}
+                onClick={() => {
+                  setCategoriaId(item.id)
+                  setConfirmando(null)
+                }}
+              >
+                {item.nome} · {item.simbolos.length}
+              </button>
+            ))}
+          </div>
+
+          {categoria && (
+            <div className="area-group">
+              <div className="area-group-topo">
+                <label className="campo-simples">
+                  Nome da prancha
+                  <input
+                    value={categoria.nome}
+                    onChange={evento => renomearCategoria(evento.target.value)}
+                    aria-label="Nome da prancha"
+                  />
+                </label>
+                {confirmando === categoria.id ? (
+                  <div className="row-actions">
+                    <button
+                      type="button"
+                      className="soft-btn danger"
+                      onClick={() => removerCategoria(categoria.id)}
+                    >
+                      <Trash2 aria-hidden="true" /> Confirmar
+                    </button>
+                    <button
+                      type="button"
+                      className="soft-btn"
+                      onClick={() => setConfirmando(null)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="soft-btn"
+                    onClick={() => setConfirmando(categoria.id)}
+                  >
+                    <Trash2 aria-hidden="true" /> Remover prancha
+                  </button>
+                )}
+              </div>
+
+              <div className="prancha-simbolos">
+                {categoria.simbolos.map(item => (
+                  <div className="prancha-simbolo" key={item.id}>
+                    <span aria-hidden="true">{item.simbolo}</span>
+                    <small>{item.rotulo}</small>
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      aria-label={`Remover o símbolo ${item.rotulo}`}
+                      onClick={() =>
+                        gravar(
+                          config.pranchas.map(prancha =>
+                            prancha.id === categoria.id
+                              ? {
+                                  ...prancha,
+                                  simbolos: prancha.simbolos.filter(s => s.id !== item.id),
+                                }
+                              : prancha,
+                          ),
+                          `Símbolo “${item.rotulo}” removido`,
+                        )
+                      }
+                    >
+                      <X aria-hidden="true" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="form-grid">
+                <label>
+                  Nome do símbolo
+                  <input
+                    value={rotulo}
+                    onChange={evento => setRotulo(evento.target.value)}
+                    placeholder="Ex.: Água"
+                  />
+                </label>
+                <label>
+                  Símbolo (imagem ou emoji)
+                  <input
+                    value={simbolo}
+                    onChange={evento => setSimbolo(evento.target.value)}
+                    placeholder="Ex.: 💧"
+                    maxLength={24}
+                  />
+                </label>
+              </div>
+              <div className="form-actions inicio">
+                <button type="button" className="soft-btn" onClick={adicionarSimbolo}>
+                  <Plus aria-hidden="true" /> Adicionar símbolo
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Versões do PDI                                                      */
+/* ------------------------------------------------------------------ */
+
+function PainelVersoes({ config, avisar }: PropsPainel) {
+  const [estudanteId, setEstudanteId] = useState('')
+  const versoes = [...config.versoes]
+    .filter(versao => !estudanteId || versao.estudanteId === estudanteId)
+    .sort((a, b) => b.quando.localeCompare(a.quando))
+
+  const nomeDe = (id: string) =>
+    config.estudantes.find(estudante => estudante.id === id)?.nome ?? 'Educando removido'
+
+  function baixarRelatorio() {
+    const cabecalho = ['Educando', 'Quando', 'Autor', 'Áreas', 'O que mudou']
+    const linhas = versoes.map(versao =>
+      [
+        nomeDe(versao.estudanteId),
+        new Date(versao.quando).toLocaleString('pt-BR'),
+        versao.autor,
+        versao.areas.map(tituloDaArea).join(' + '),
+        versao.resumo,
+      ]
+        .map(campo => `"${String(campo).split(String.fromCharCode(34)).join(String.fromCharCode(34, 34))}"`)
+        .join(';'),
+    )
+    const conteudo = [cabecalho.join(';'), ...linhas].join(String.fromCharCode(10))
+    const url = URL.createObjectURL(new Blob([conteudo], { type: 'text/csv;charset=utf-8' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `pdi-versoes-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+    avisar('Histórico de versões exportado em CSV.')
+  }
+
+  return (
+    <section>
+      <Cabecalho
+        titulo="Versões do PDI"
+        descricao="Cada contribuição salva entra no histórico com autor, data e área. Nada é sobrescrito sem registro."
+        {...(versoes.length > 0 ? { acao: 'Baixar relatório', onAction: baixarRelatorio } : {})}
+      />
+
+      <label className="student-picker">
+        Educando
+        <select value={estudanteId} onChange={evento => setEstudanteId(evento.target.value)}>
+          <option value="">Todos os educandos</option>
+          {config.estudantes.map(estudante => (
+            <option key={estudante.id} value={estudante.id}>
+              {estudante.nome}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {versoes.length === 0 ? (
+        <div className="empty-state">
+          <History aria-hidden="true" />
+          <strong>Nenhuma versão registrada ainda</strong>
+          <p>O histórico começa quando a primeira resposta do PDI for salva.</p>
+        </div>
+      ) : (
+        <ol className="versao-lista">
+          {versoes.map(versao => (
+            <li key={versao.id} className="versao-item">
+              <span className="versao-ponto" aria-hidden="true" />
+              <div>
+                <strong>{versao.resumo}</strong>
+                <small>
+                  {nomeDe(versao.estudanteId)} · {versao.autor} ·{' '}
+                  {formatarData(versao.quando)}
+                </small>
+                <span className="tag">{versao.areas.map(tituloDaArea).join(' + ')}</span>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
     </section>
   )
 }
@@ -1215,8 +1643,87 @@ function PainelConfiguracoes({ config, atualizar, modo, avisar }: PropsPainel) {
     <section>
       <Cabecalho
         titulo="Configurações"
-        descricao="Como o sistema está gravando os dados e ferramentas para testar o fluxo."
+        descricao="Identidade institucional, armazenamento e histórico administrativo."
       />
+
+      <article className="editor-card">
+        <h2>Identidade institucional</h2>
+        <p className="muted">
+          O nome e a logo aparecem no topo do sistema e no cabeçalho dos relatórios.
+        </p>
+        <div className="form-grid">
+          <label>
+            Nome do sistema
+            <input
+              value={config.institucional.nomeApp}
+              onChange={evento =>
+                atualizar(atual => ({
+                  ...atual,
+                  institucional: { ...atual.institucional, nomeApp: evento.target.value },
+                }))
+              }
+              placeholder="PDI Interativo"
+            />
+          </label>
+          <label>
+            Escola ou instituição
+            <input
+              value={config.institucional.escola}
+              onChange={evento =>
+                atualizar(atual => ({
+                  ...atual,
+                  institucional: { ...atual.institucional, escola: evento.target.value },
+                }))
+              }
+              placeholder="Nome da escola"
+            />
+          </label>
+          <label>
+            Logo (arquivo de imagem)
+            <input
+              type="file"
+              accept="image/*"
+              onChange={evento => {
+                const arquivo = evento.target.files?.[0]
+                if (!arquivo) return
+                const leitor = new FileReader()
+                leitor.onload = () => {
+                  const dados = String(leitor.result ?? '')
+                  atualizar(
+                    atual => ({
+                      ...atual,
+                      institucional: { ...atual.institucional, logoUrl: dados },
+                    }),
+                    'Identidade visual atualizada',
+                  )
+                  avisar('Logo atualizada.')
+                }
+                leitor.readAsDataURL(arquivo)
+              }}
+            />
+          </label>
+        </div>
+        {config.institucional.logoUrl && (
+          <div className="logo-preview">
+            <img src={config.institucional.logoUrl} alt="Logo configurada" />
+            <button
+              className="soft-btn"
+              type="button"
+              onClick={() =>
+                atualizar(
+                  atual => ({
+                    ...atual,
+                    institucional: { ...atual.institucional, logoUrl: '' },
+                  }),
+                  'Logo removida',
+                )
+              }
+            >
+              <X aria-hidden="true" /> Remover logo
+            </button>
+          </div>
+        )}
+      </article>
 
       <article className="editor-card">
         <h2>Armazenamento</h2>
@@ -1230,7 +1737,7 @@ function PainelConfiguracoes({ config, atualizar, modo, avisar }: PropsPainel) {
             : 'Sem DATABASE_URL configurada, os dados ficam no armazenamento local deste navegador. Ao configurar o banco (e rodar db/init.sql), o sistema passa a gravar tudo no PostgreSQL automaticamente.'}
         </p>
         <p className="muted">
-          Estudantes: {config.estudantes.length} · Usuários: {config.usuarios.length} · Permissões:{' '}
+          Educandos: {config.estudantes.length} · Usuários: {config.usuarios.length} · Permissões:{' '}
           {Object.keys(config.permissoes).length} · Indicadores:{' '}
           {config.indicadores.join(', ') || 'nenhum'}
         </p>
@@ -1244,7 +1751,7 @@ function PainelConfiguracoes({ config, atualizar, modo, avisar }: PropsPainel) {
       <article className="editor-card">
         <h2>Limpar dados</h2>
         <p className="muted">
-          Apaga estudantes, usuários, permissões e todas as respostas de PDI gravadas neste
+          Apaga educandos, usuários, permissões e todas as respostas de PDI gravadas neste
           ambiente. A estrutura dos campos volta ao padrão. Use com cuidado: a ação não pode ser
           desfeita.
         </p>

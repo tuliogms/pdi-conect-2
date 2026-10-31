@@ -134,9 +134,9 @@ const entrada = (id, area, sectionKey) =>
   entradasDe(id).find(item => item.area === area && item.sectionKey === sectionKey)
 
 // ---------------------------------------------------------------------------
-console.log('\n1) Estudante escreve, salva e troca para perguntas')
+console.log('\n1) Educando escreve, salva e troca para perguntas')
 {
-  const container = await montar('Estudante')
+  const container = await montar('Educando')
   await navegar(container, 'Meu PDI')
 
   const primeiroTopico = container.querySelector('.topico-card')
@@ -171,7 +171,7 @@ console.log('\n1) Estudante escreve, salva e troca para perguntas')
     'segunda resposta gravada no tema certo',
     entrada(estudanteId, 'estudante', 'meus-objetivos')?.content.includes('leitura em voz alta'),
   )
-  ok("progresso do estudante conta os tópicos respondidos", container.textContent.includes('2/6 tópicos respondidos'))
+  ok("progresso do estudante conta os tópicos respondidos", container.textContent.includes('2/6 seções respondidas'))
 }
 
 // ---------------------------------------------------------------------------
@@ -180,13 +180,14 @@ console.log('\n2) Professor preenche a área dele e comenta a da família')
   const container = await montar('Professor')
   await navegar(container, 'Meu PDI')
 
-  const grupoProfessor = [...container.querySelectorAll('.area-group')].find(grupo =>
-    grupo.textContent.includes('Área do Professor'),
+  const grupoProfessor = container.querySelector('.aba-painel .area-group')
+  ok(
+    'área do professor abre primeiro para o professor',
+    Boolean(grupoProfessor) && grupoProfessor.textContent.includes('Área do Professor'),
   )
-  ok('área do professor abre primeiro para o professor', Boolean(grupoProfessor))
 
   const campoObservacoes = [...grupoProfessor.querySelectorAll('.answer-block')].find(bloco =>
-    bloco.textContent.includes('Observações pedagógicas'),
+    bloco.textContent.includes('Como participa das aulas'),
   )
   await digitar(campoObservacoes.querySelector('textarea'), 'Participa bem das atividades em grupo.')
   await clicar(campoObservacoes.querySelector('.save-answer'))
@@ -194,13 +195,15 @@ console.log('\n2) Professor preenche a área dele e comenta a da família')
   ok('observação pedagógica gravada', salva?.content.includes('atividades em grupo'))
   ok('resposta da equipe é identificada pelo autor', Boolean(salva?.authorName))
 
-  // comenta a área da família (as áreas aparecem uma abaixo da outra)
-  const grupoFamilia = [...container.querySelectorAll('.area-group')].find(grupo =>
-    grupo.textContent.includes('Área da Família'),
+  // abre a aba da família para comentar a rotina
+  const abaFamilia = [...container.querySelectorAll('.pdi-abas .area-tab')].find(aba =>
+    aba.textContent.includes('Família'),
   )
-  ok('as áreas da equipe aparecem na mesma tela', Boolean(grupoFamilia))
+  await clicar(abaFamilia)
+  const grupoFamilia = container.querySelector('.aba-painel .area-group')
+  ok('as áreas da equipe abrem na mesma tela', Boolean(grupoFamilia))
   const campoRotina = [...grupoFamilia.querySelectorAll('.answer-block')].find(bloco =>
-    bloco.textContent.includes('Rotina'),
+    /Como é a rotina/i.test(bloco.textContent),
   )
   const abrirComentario = porTexto(campoRotina, 'button', 'Adicionar observação')
   ok('professor pode comentar a área da família', Boolean(abrirComentario))
@@ -221,16 +224,16 @@ console.log('\n2) Professor preenche a área dele e comenta a da família')
 console.log('\n3) Administração cadastra estudante e usuário')
 {
   const container = await montar('Usuário Mestre')
-  await navegar(container, 'Estudantes')
+  await navegar(container, 'Educandos')
 
   const abrirCadastro = [...container.querySelectorAll('button')].find(botao =>
-    /Novo estudante|Cadastrar estudante/i.test(botao.textContent),
+    /Novo educando|Cadastrar educando/i.test(botao.textContent),
   )
-  ok('botão de cadastrar estudante existe', Boolean(abrirCadastro))
+  ok('botão de cadastrar educando existe', Boolean(abrirCadastro))
   await clicar(abrirCadastro)
 
   const formulario = container.querySelector('form')
-  ok('formulário de estudante abre', Boolean(formulario))
+  ok('formulário de educando abre', Boolean(formulario))
   const campos = [...formulario.querySelectorAll('input')]
   await digitar(campos[0], 'Ana Beatriz')
   await digitar(campos[1], '4º ano B')
@@ -238,9 +241,9 @@ console.log('\n3) Administração cadastra estudante e usuário')
   await clicar(formulario.querySelector('button[type="submit"]'))
 
   const depois = configAtual()
-  ok('estudante novo entra na configuração', depois.estudantes.length === 2)
+  ok('educando novo entra na configuração', depois.estudantes.length === 2)
   ok(
-    'estudante novo aparece na lista',
+    'educando novo aparece na lista',
     container.textContent.includes('Ana Beatriz'),
   )
 
@@ -270,11 +273,11 @@ console.log('\n4) Administração ajusta permissão e cria campo')
   const container = await montar('Usuário Mestre')
   await navegar(container, 'Permissões de acesso')
 
-  const linhaSaude = [...container.querySelectorAll('.permission-row')].find(linha =>
-    linha.textContent.includes('Saúde'),
+  const linhaApoio = [...container.querySelectorAll('.permission-row')].find(linha =>
+    /Apoio/i.test(linha.textContent),
   )
-  ok('matriz mostra a linha da saúde', Boolean(linhaSaude))
-  await escolher(linhaSaude.querySelector('select'), 'Sem acesso')
+  ok('matriz mostra a linha dos profissionais de apoio', Boolean(linhaApoio))
+  await escolher(linhaApoio.querySelector('select'), 'Sem acesso')
   const salvar = porTexto(container, 'button', 'Salvar permissões')
   await clicar(salvar)
   ok(
@@ -330,7 +333,7 @@ console.log('\n5) Acompanhamento registra evolução e próximos passos')
 // ---------------------------------------------------------------------------
 console.log('\n6) Acessibilidade grava as preferências')
 {
-  const container = await montar('Estudante')
+  const container = await montar('Educando')
   await navegar(container, 'Acessibilidade')
   const caixas = [...container.querySelectorAll('input[type="checkbox"]')]
   await clicar(caixas[2])
