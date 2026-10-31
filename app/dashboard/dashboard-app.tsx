@@ -5,19 +5,20 @@ import { useRouter } from 'next/navigation'
 import {
   Accessibility,
   BarChart3,
+  BookOpen,
   Check,
-  ClipboardList,
+  CircleUserRound,
   Database,
   Ear,
   FileText,
   HardDrive,
-  Home,
-  LayoutGrid,
+  HeartHandshake,
   LogOut,
   Menu,
   Settings2,
   ShieldCheck,
-  Users,
+  Stethoscope,
+  UsersRound,
   X,
 } from 'lucide-react'
 import { isAdmin, iniciaisPerfil, PERFIL_ADMIN, type Perfil } from '@/lib/perfis'
@@ -29,22 +30,25 @@ import {
   salvarConfig,
 } from '@/lib/dados'
 import {
+  acessoNaArea,
+  chaveInternaDaArea,
   novoRegistro,
-  progressoGeral,
+  type AreaNavegacao,
   type Configuracao,
   type EntradaPdi,
   type ModoPersistencia,
   type ModoResposta,
   type SecaoAdmin,
-  type SecaoParticipante,
 } from '@/lib/pdi-tipos'
 import PainelAdmin from './painel-admin'
-import AreaParticipante, { type ContextoUsuario } from './area-participante'
+import AreaParticipante, {
+  areaPadraoDoPerfil,
+  rotuloDaArea,
+  type ContextoUsuario,
+} from './area-participante'
 import Acompanhamento from './acompanhamento'
 import PdiConsolidado from './consolidado'
-import MeusAlunos from './meus-alunos'
 import { Cabecalho } from './cabecalho'
-import { FluxoPdi } from './fluxo'
 import { PainelAcessibilidade, useAcessibilidade } from './acessibilidade'
 
 export type Avisar = (texto: string) => void
@@ -54,51 +58,30 @@ export type AtualizarConfig = (
   historico?: string,
 ) => void
 
-type ItemMenu = SecaoAdmin | SecaoParticipante
+/** As oito áreas do PDI + dois utilitários (acessibilidade e configurações). */
+const AREAS_PDI: AreaNavegacao[] = ['educando', 'professor', 'aee', 'familia', 'apoio']
+const AREAS_DO_PDI: AreaNavegacao[] = [...AREAS_PDI, 'construcao', 'acompanhamento']
 
-const menuAdmin: SecaoAdmin[] = [
-  'Visão geral',
-  'Usuários',
-  'Educandos',
-  'Planos de PDI',
-  'PDI consolidado',
-  'Versões do PDI',
-  'Permissões de acesso',
-  'Campos e formulários',
-  'Pranchas de comunicação',
-  'Acompanhamento',
-  'Configurações',
-]
-
-const menuParticipante: SecaoParticipante[] = [
-  'Início',
-  'Meus alunos',
-  'Meu PDI',
-  'PDI consolidado',
-  'Acompanhamento',
-  'Acessibilidade',
-  'Configurações',
-]
-
-function iconeDoItem(item: ItemMenu) {
-  if (item === 'Visão geral' || item === 'Início' || item === 'Meu PDI') return <Home aria-hidden="true" />
-  if (item === 'Usuários' || item === 'Meus alunos') return <Users aria-hidden="true" />
-  if (item === 'Permissões de acesso') return <ShieldCheck aria-hidden="true" />
-  if (item === 'Acompanhamento') return <BarChart3 aria-hidden="true" />
-  if (item === 'Campos e formulários' || item === 'Pranchas de comunicação')
-    return <LayoutGrid aria-hidden="true" />
-  if (item === 'Configurações') return <Settings2 aria-hidden="true" />
-  if (item === 'Acessibilidade') return <Ear aria-hidden="true" />
-  if (item === 'Educandos') return <ClipboardList aria-hidden="true" />
-  return <FileText aria-hidden="true" />
+function iconeDaArea(area: AreaNavegacao) {
+  if (area === 'educando') return <CircleUserRound aria-hidden="true" />
+  if (area === 'professor') return <BookOpen aria-hidden="true" />
+  if (area === 'aee') return <UsersRound aria-hidden="true" />
+  if (area === 'familia') return <HeartHandshake aria-hidden="true" />
+  if (area === 'apoio') return <Stethoscope aria-hidden="true" />
+  if (area === 'construcao') return <FileText aria-hidden="true" />
+  if (area === 'acompanhamento') return <BarChart3 aria-hidden="true" />
+  if (area === 'mestre') return <ShieldCheck aria-hidden="true" />
+  if (area === 'acessibilidade') return <Ear aria-hidden="true" />
+  return <Settings2 aria-hidden="true" />
 }
 
 export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil }) {
   const router = useRouter()
   const [perfil, setPerfil] = useState<Perfil>(perfilInicial)
-  const [secao, setSecao] = useState<ItemMenu>(
-    isAdmin(perfilInicial) ? 'Visão geral' : 'Início',
+  const [area, setArea] = useState<AreaNavegacao>(
+    isAdmin(perfilInicial) ? 'mestre' : areaPadraoDoPerfil(perfilInicial),
   )
+  const [secaoAdmin, setSecaoAdmin] = useState<SecaoAdmin>('Visão geral')
   const [menuAberto, setMenuAberto] = useState(false)
   const [tamanho, setTamanho] = useState(1)
   const [config, setConfig] = useState<Configuracao | null>(null)
@@ -115,7 +98,7 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
   // mantém o estado sincronizado caso a URL mude (ex.: voltar/avançar no navegador)
   useEffect(() => {
     setPerfil(perfilInicial)
-    setSecao(isAdmin(perfilInicial) ? 'Visão geral' : 'Início')
+    setArea(isAdmin(perfilInicial) ? 'mestre' : areaPadraoDoPerfil(perfilInicial))
   }, [perfilInicial])
 
   useEffect(() => {
@@ -188,7 +171,6 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
   )
 
   const admin = isAdmin(perfil)
-  const menu: ItemMenu[] = admin ? menuAdmin : menuParticipante
 
   /**
    * Identidade de quem está usando o app. Sem autenticação real, a pessoa
@@ -215,7 +197,7 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
     nome: usuarioAtual?.nome ?? perfil,
   }
 
-  /** Estudantes que a pessoa pode ver: só os vinculados a ela, quando houver. */
+  /** Educandos que a pessoa pode ver: só os vinculados a ela, quando houver. */
   const estudantesDoUsuario = useMemo(() => {
     if (!config) return []
     if (usuarioAtual?.estudanteId) {
@@ -236,7 +218,7 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
     return config.estudantes[0]
   }, [config, estudanteFoco, usuarioAtual?.estudanteId])
 
-  // carrega as respostas do estudante em foco para o painel de início
+  // carrega as respostas do educando em foco (usado no Início do PDI)
   useEffect(() => {
     let ativo = true
     if (!estudanteVisivel?.id) {
@@ -251,6 +233,41 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
     }
   }, [estudanteVisivel?.id, modo])
 
+  /**
+   * Navegação principal: as áreas do PDI. Só aparecem as áreas a que a pessoa
+   * tem acesso (a autorização da família vale aqui); o Usuário Mestre tem a
+   * área administrativa e vê todas.
+   */
+  const { areas, preferencias } = useMemo<{
+    areas: AreaNavegacao[]
+    preferencias: AreaNavegacao[]
+  }>(() => {
+    if (!config) return { areas: AREAS_DO_PDI, preferencias: [] }
+    if (admin) return { areas: [...AREAS_DO_PDI, 'mestre'], preferencias: [] }
+    const liberadas = AREAS_PDI.filter(
+      chave =>
+        acessoNaArea(config, {
+          usuarioId: contexto.usuarioId,
+          perfil,
+          estudanteId: estudanteVisivel?.id ?? '',
+          area: chaveInternaDaArea(chave),
+        }) !== 'Sem acesso',
+    )
+    return {
+      areas: [...liberadas, 'construcao', 'acompanhamento'],
+      preferencias: ['acessibilidade', 'configuracoes'],
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [admin, config, contexto.usuarioId, estudanteVisivel?.id, perfil])
+
+  const menu = useMemo(() => [...areas, ...preferencias], [areas, preferencias])
+
+  // se a área aberta deixar de existir (permissão mudou), volta para uma válida
+  useEffect(() => {
+    if (!config) return
+    if (menu.length > 0 && !menu.includes(area)) setArea(menu[0])
+  }, [area, config, menu])
+
   function trocarIdentidade(usuarioId: string) {
     const proximo = { ...identidade, [perfil]: usuarioId }
     setIdentidade(proximo)
@@ -258,8 +275,8 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
     avisar('Você está usando este cadastro agora.')
   }
 
-  function navegar(item: ItemMenu) {
-    setSecao(item)
+  function navegar(novaArea: AreaNavegacao) {
+    setArea(novaArea)
     setMenuAberto(false)
   }
 
@@ -274,6 +291,8 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
   ]
     .filter(Boolean)
     .join(' ')
+
+  const nomeApp = config?.institucional.nomeApp || 'PDI Interativo'
 
   return (
     <main className={classes} style={{ fontSize: `${tamanho}em` }}>
@@ -294,7 +313,7 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
             alt={config?.institucional.escola || 'Logo da instituição'}
           />
           <div>
-            <strong>{config?.institucional.nomeApp || 'PDI Interativo'}</strong>
+            <strong>{nomeApp}</strong>
           </div>
         </div>
         <div className="top-actions">
@@ -308,7 +327,7 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
           <button
             className="icon-btn"
             aria-label="Abrir configurações"
-            onClick={() => setSecao('Configurações')}
+            onClick={() => navegar(admin ? 'mestre' : 'configuracoes')}
           >
             <Settings2 aria-hidden="true" />
           </button>
@@ -342,25 +361,39 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
               <span className="logo-separator" aria-hidden="true" />
               <img src="/logo-uemg.png" alt="UEMG" />
             </div>
-            <strong className="sidebar-app-name">
-              {config?.institucional.nomeApp || 'PDI Interativo'}
-            </strong>
+            <strong className="sidebar-app-name">{nomeApp}</strong>
             {config?.institucional.escola && (
               <span className="muted small-note">{config.institucional.escola}</span>
             )}
           </div>
-          <p className="eyebrow">{admin ? 'Administração do sistema' : 'Navegação principal'}</p>
-          {menu.map(item => (
+          <p className="eyebrow">Áreas do PDI</p>
+          {areas.map(item => (
             <button
               key={item}
-              className={`side-link ${secao === item ? 'active' : ''}`}
-              aria-current={secao === item ? 'page' : undefined}
+              className={`side-link ${area === item ? 'active' : ''}`}
+              aria-current={area === item ? 'page' : undefined}
               onClick={() => navegar(item)}
             >
-              {iconeDoItem(item)}
-              {item}
+              {iconeDaArea(item)}
+              {rotuloDaArea(item)}
             </button>
           ))}
+          {preferencias.length > 0 && (
+            <>
+              <p className="eyebrow">Preferências</p>
+              {preferencias.map(item => (
+                <button
+                  key={item}
+                  className={`side-link ${area === item ? 'active' : ''}`}
+                  aria-current={area === item ? 'page' : undefined}
+                  onClick={() => navegar(item)}
+                >
+                  {iconeDaArea(item)}
+                  {rotuloDaArea(item)}
+                </button>
+              ))}
+            </>
+          )}
           <div className="sidebar-bottom">
             <div className="support-card">
               <Check aria-hidden="true" />
@@ -421,47 +454,29 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
             <p className="muted" role="status">
               Carregando os dados…
             </p>
-          ) : admin ? (
-            secao === 'PDI consolidado' ? (
-              <PdiConsolidado config={config} />
-            ) : (
-              <PainelAdmin
-                secao={secao as SecaoAdmin}
-                config={config}
-                atualizar={atualizar}
-                avisar={avisar}
-                onNavegar={navegar}
-                modo={modo}
-                contexto={contexto}
-                acessibilidade={acessibilidade}
-                definirModo={definirModo}
-              />
-            )
-          ) : secao === 'Início' ? (
-            <InicioParticipante
+          ) : area === 'mestre' ? (
+            <PainelAdmin
+              secao={secaoAdmin}
               config={config}
-              contexto={contexto}
-              entradas={entradas}
-              onNavegar={navegar}
-            />
-          ) : secao === 'Meus alunos' ? (
-            <MeusAlunos
-              config={config}
-              estudantes={estudantesDoUsuario}
-              onAbrir={estudanteId => {
+              atualizar={atualizar}
+              avisar={avisar}
+              onNavegar={setSecaoAdmin}
+              onAbrirPdi={estudanteId => {
                 setEstudanteFoco(estudanteId)
-                setSecao('Meu PDI')
+                navegar('educando')
               }}
+              modo={modo}
+              contexto={contexto}
+              acessibilidade={acessibilidade}
+              definirModo={definirModo}
             />
-          ) : secao === 'PDI consolidado' ? (
+          ) : area === 'construcao' ? (
             <PdiConsolidado
               config={config}
               estudantesPermitidos={estudantesDoUsuario}
               {...(estudanteVisivel ? { estudanteIdInicial: estudanteVisivel.id } : {})}
             />
-          ) : secao === 'Acessibilidade' ? (
-            <PainelAcessibilidade controle={acessibilidade} />
-          ) : secao === 'Acompanhamento' ? (
+          ) : area === 'acompanhamento' ? (
             <Acompanhamento
               config={config}
               autor={contexto.nome}
@@ -469,19 +484,22 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
               estudantesPermitidos={estudantesDoUsuario}
               {...(estudanteVisivel ? { estudanteIdInicial: estudanteVisivel.id } : {})}
             />
-          ) : secao === 'Configurações' ? (
+          ) : area === 'acessibilidade' ? (
+            <PainelAcessibilidade controle={acessibilidade} />
+          ) : area === 'configuracoes' ? (
             <ConfiguracoesParticipante
               config={config}
               contexto={contexto}
               modo={modo}
               estudante={estudanteVisivel}
-              onNavegar={navegar}
+              onNavegar={() => navegar('acessibilidade')}
             />
           ) : (
             <AreaParticipante
+              areaFixa={area}
               contexto={contexto}
               config={config}
-              ehAdmin={false}
+              ehAdmin={admin}
               avisar={avisar}
               acessibilidade={acessibilidade}
               definirModo={definirModo}
@@ -493,70 +511,6 @@ export default function DashboardApp({ perfilInicial }: { perfilInicial: Perfil 
         </section>
       </div>
     </main>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/* Início do participante                                              */
-/* ------------------------------------------------------------------ */
-
-function InicioParticipante({
-  config,
-  contexto,
-  entradas,
-  onNavegar,
-}: {
-  config: Configuracao
-  contexto: ContextoUsuario
-  entradas: EntradaPdi[]
-  onNavegar: (item: ItemMenu) => void
-}) {
-  const estudante =
-    config.estudantes.find(item => item.id === config.usuarios.find(u => u.id === contexto.usuarioId)?.estudanteId) ??
-    config.estudantes[0]
-
-  const progressos = progressoGeral(config, entradas)
-  const concluidas = progressos.filter(item => item.status === 'Concluída').length
-
-  return (
-    <section>
-      <div className="welcome-row admin-heading">
-        <div>
-          <p className="eyebrow">{config.institucional.nomeApp || 'PDI Interativo'}</p>
-          <h1>Olá, {contexto.nome}!</h1>
-          <p className="muted">
-            {estudante
-              ? `PDI de ${estudante.nome} — ${concluidas} de ${progressos.length} etapas concluídas.`
-              : 'Nenhum educando cadastrado ainda.'}
-          </p>
-        </div>
-        <button className="primary-btn" onClick={() => onNavegar('Meu PDI')}>
-          Continuar o PDI
-        </button>
-      </div>
-
-      {!estudante ? (
-        <div className="empty-state">
-          <Users aria-hidden="true" />
-          <strong>Nenhum educando cadastrado ainda</strong>
-          <p>Peça à administração da escola para cadastrar o educando e vincular você a ele.</p>
-        </div>
-      ) : (
-        <>
-          <h2 className="pdi-heading">Como está o PDI</h2>
-          <FluxoPdi
-            progressos={progressos}
-            onAbrir={area => {
-              if (area === 'estudante') onNavegar('Meu PDI')
-            }}
-          />
-          <p className="muted small-note">
-            A ordem sugerida é educando → professor → AEE → família → profissionais de apoio,
-            mas as etapas podem ser preenchidas ao mesmo tempo.
-          </p>
-        </>
-      )}
-    </section>
   )
 }
 
@@ -575,7 +529,7 @@ function ConfiguracoesParticipante({
   contexto: ContextoUsuario
   modo: ModoPersistencia
   estudante?: { nome: string }
-  onNavegar: (item: ItemMenu) => void
+  onNavegar: () => void
 }) {
   return (
     <section>
@@ -599,10 +553,21 @@ function ConfiguracoesParticipante({
           {modo === 'banco' ? 'banco de dados da instituição' : 'neste navegador'}.
         </p>
         <div className="form-actions inicio">
-          <button className="outline-btn" onClick={() => onNavegar('Acessibilidade')}>
+          <button className="outline-btn" onClick={onNavegar}>
             <Accessibility aria-hidden="true" /> Abrir acessibilidade
           </button>
         </div>
+      </article>
+
+      <article className="editor-card">
+        <h2>Identidade da instituição</h2>
+        <p className="muted">
+          Nome do sistema: <strong>{config.institucional.nomeApp}</strong>.
+        </p>
+        <p className="muted">
+          Escola: <strong>{config.institucional.escola || 'não informada'}</strong>. A identidade é
+          configurada pelo Usuário Mestre.
+        </p>
       </article>
     </section>
   )

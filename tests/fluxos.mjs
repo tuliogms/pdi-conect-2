@@ -117,6 +117,19 @@ async function escolher(elemento, valor) {
   })
 }
 
+async function abaAdmin(container, rotulo) {
+  // a configuração chega de forma assíncrona: espera as sub-abas aparecerem
+  let botao = null
+  for (let tentativa = 0; tentativa < 20 && !botao; tentativa++) {
+    botao = [...container.querySelectorAll('.admin-subabas button')].find(
+      item => item.textContent.trim() === rotulo,
+    )
+    if (!botao) await act(async () => { await espera(60) })
+  }
+  assert.ok(botao, `sub-aba "${rotulo}" não encontrada`)
+  await clicar(botao)
+}
+
 async function navegar(container, rotulo) {
   const botao = [...container.querySelectorAll('.sidebar button.side-link')].find(
     item => item.textContent.trim() === rotulo,
@@ -137,7 +150,6 @@ const entrada = (id, area, sectionKey) =>
 console.log('\n1) Educando escreve, salva e troca para perguntas')
 {
   const container = await montar('Educando')
-  await navegar(container, 'Meu PDI')
 
   const primeiroTopico = container.querySelector('.topico-card')
   const campo = primeiroTopico.querySelector('textarea')
@@ -178,12 +190,13 @@ console.log('\n1) Educando escreve, salva e troca para perguntas')
 console.log('\n2) Professor preenche a área dele e comenta a da família')
 {
   const container = await montar('Professor')
-  await navegar(container, 'Meu PDI')
 
-  const grupoProfessor = container.querySelector('.aba-painel .area-group')
+  const grupoProfessor = [...container.querySelectorAll('.area-group')].find(grupo =>
+    grupo.textContent.includes('Área do Professor'),
+  )
   ok(
     'área do professor abre primeiro para o professor',
-    Boolean(grupoProfessor) && grupoProfessor.textContent.includes('Área do Professor'),
+    Boolean(grupoProfessor),
   )
 
   const campoObservacoes = [...grupoProfessor.querySelectorAll('.answer-block')].find(bloco =>
@@ -195,13 +208,10 @@ console.log('\n2) Professor preenche a área dele e comenta a da família')
   ok('observação pedagógica gravada', salva?.content.includes('atividades em grupo'))
   ok('resposta da equipe é identificada pelo autor', Boolean(salva?.authorName))
 
-  // abre a aba da família para comentar a rotina
-  const abaFamilia = [...container.querySelectorAll('.pdi-abas .area-tab')].find(aba =>
-    aba.textContent.includes('Família'),
-  )
-  await clicar(abaFamilia)
-  const grupoFamilia = container.querySelector('.aba-painel .area-group')
-  ok('as áreas da equipe abrem na mesma tela', Boolean(grupoFamilia))
+  // abre a área da família pela navegação principal para comentar a rotina
+  await navegar(container, 'Família')
+  const grupoFamilia = container.querySelector('.area-group')
+  ok('a área da família abre pela navegação', Boolean(grupoFamilia))
   const campoRotina = [...grupoFamilia.querySelectorAll('.answer-block')].find(bloco =>
     /Como é a rotina/i.test(bloco.textContent),
   )
@@ -224,7 +234,7 @@ console.log('\n2) Professor preenche a área dele e comenta a da família')
 console.log('\n3) Administração cadastra estudante e usuário')
 {
   const container = await montar('Usuário Mestre')
-  await navegar(container, 'Educandos')
+  await abaAdmin(container, 'Educandos')
 
   const abrirCadastro = [...container.querySelectorAll('button')].find(botao =>
     /Novo educando|Cadastrar educando/i.test(botao.textContent),
@@ -247,7 +257,7 @@ console.log('\n3) Administração cadastra estudante e usuário')
     container.textContent.includes('Ana Beatriz'),
   )
 
-  await navegar(container, 'Usuários')
+  await abaAdmin(container, 'Usuários')
   const abrirUsuario = [...container.querySelectorAll('button')].find(botao =>
     /Cadastrar usuário/i.test(botao.textContent),
   )
@@ -271,7 +281,7 @@ console.log('\n3) Administração cadastra estudante e usuário')
 console.log('\n4) Administração ajusta permissão e cria campo')
 {
   const container = await montar('Usuário Mestre')
-  await navegar(container, 'Permissões de acesso')
+  await abaAdmin(container, 'Permissões de acesso')
 
   const linhaApoio = [...container.querySelectorAll('.permission-row')].find(linha =>
     /Apoio/i.test(linha.textContent),
@@ -285,7 +295,7 @@ console.log('\n4) Administração ajusta permissão e cria campo')
     Object.values(configAtual().permissoes ?? {}).includes('Sem acesso'),
   )
 
-  await navegar(container, 'Campos e formulários')
+  await abaAdmin(container, 'Campos e formulários')
   const campoNovo = porTexto(container, 'button', 'Novo campo') ?? porTexto(container, 'button', 'Adicionar campo')
   ok('botão de criar campo existe', Boolean(campoNovo))
   await clicar(campoNovo)

@@ -20,31 +20,31 @@ O sistema começa **vazio** — nenhum educando, usuário ou resposta de exemplo
 2. Entre como **Usuário Mestre** → aba **Educandos** → botão **Cadastrar educando**
    (ex.: “Ana Beatriz”, “4º ano B”, “Escola Municipal Paulo Freire”).
    - ✅ O educando aparece na lista com equipe vazia.
-3. Aba **Usuários** → **Cadastrar usuário**, um por vez, vinculando ao educando:
+3. Área **Usuário Mestre** → **Usuários** → **Cadastrar usuário**, um por vez, vinculando ao educando:
    educando, professor, professor de AEE, família e profissional de apoio.
    - ✅ Cada pessoa aparece na tabela com o perfil e o vínculo corretos.
-4. Aba **Configurações** → **Identidade institucional**: troque o nome do sistema, a escola e
-   envie uma logo.
+4. Área **Usuário Mestre** → **Configurações** → **Identidade institucional**: troque o nome do
+   sistema, a escola e envie uma logo.
    - ✅ O nome/logo aparecem no topo e no cabeçalho do PDI consolidado.
 
 ---
 
 ## 1. Visão geral e cadastros (Mestre)
 
-1. Aba **Visão geral**.
+1. Sub-aba **Visão geral**.
    - ✅ Cartões com Educandos, Usuários, Aguardando acesso, Permissões, Campos e Alterações.
    - ✅ Atalhos administrativos e **histórico de alterações** com data.
-2. Aba **Usuários**.
+2. Sub-aba **Usuários**.
    - ✅ Busca e filtros por perfil e status funcionam.
    - ✅ E-mail repetido é barrado com mensagem.
-3. Aba **Educandos** — editar e remover (com confirmação).
+3. Sub-aba **Educandos** — editar, remover (com confirmação) e **Abrir PDI**.
    - ✅ Remover um educando desfaz o vínculo dos usuários, sem apagar as pessoas.
 
 ---
 
 ## 2. Campos, perguntas e pranchas (Mestre)
 
-1. Aba **Campos e formulários** → escolha a área **Área do Professor**.
+1. Área **Usuário Mestre** → **Campos e formulários** → escolha a área **Área do Professor**.
    - ✅ Os campos aparecem agrupados por seção (Identificação, Observações pedagógicas,
      Potencialidades, Dificuldades e barreiras, Estratégias, Adaptações, Objetivos,
      Acompanhamento) — oito seções.
@@ -52,15 +52,15 @@ O sistema começa **vazio** — nenhum educando, usuário ou resposta de exemplo
    - ✅ O campo novo entra na seção escolhida e a ordem é a mesma do PDF.
 3. Role até **Perguntas norteadoras do educando**: adicione e remova perguntas de uma seção.
    - ✅ As perguntas aparecem no formato “Perguntas” do educando.
-4. Aba **Pranchas de comunicação**: crie uma prancha, adicione símbolos e remova um símbolo.
+4. Sub-aba **Pranchas de comunicação**: crie uma prancha, adicione símbolos e remova um símbolo.
    - ✅ Cada símbolo tem imagem (emoji) e **nome escrito**.
 
 ---
 
 ## 3. Área do educando (6 seções + áudio + prancha)
 
-1. Saia e entre como **Educando** → aba **Meu PDI**.
-   - ✅ A aba **Educando** já vem aberta, com as seis seções.
+1. Saia e entre como **Educando**.
+   - ✅ A área **Educando** já vem aberta, com as seis seções.
 2. Escreva em **Meu perfil** e clique **Salvar**.
    - ✅ “Resposta salva no banco de dados” e a linha “Última versão de … · data”.
 3. Troque o formato para **Perguntas** e responda uma pergunta.
@@ -79,8 +79,8 @@ O sistema começa **vazio** — nenhum educando, usuário ou resposta de exemplo
 
 ## 4. Professor e AEE (8 e 9 seções)
 
-1. Entre como **Professor** → **Meu PDI**.
-   - ✅ A aba **Professor** abre por padrão, com as oito seções.
+1. Entre como **Professor**.
+   - ✅ A área **Professor** abre por padrão, com as oito seções.
 2. Salve uma observação pedagógica e adicione um item em **Potencialidades**.
    - ✅ Os itens viram chips e ficam salvos com autor e data.
 3. Abra a aba **AEE**.
@@ -93,8 +93,8 @@ O sistema começa **vazio** — nenhum educando, usuário ou resposta de exemplo
 
 ## 5. Família: rotina e autorização de compartilhamento (10 seções)
 
-1. Entre como **Família** → **Meu PDI**.
-   - ✅ A aba **Família** abre por padrão, com as dez seções.
+1. Entre como **Família**.
+   - ✅ A área **Família** abre por padrão, com as dez seções.
 2. Preencha **Como é a rotina em casa** e salve.
 3. Vá até **Autorização de compartilhamento**.
    - ✅ O cartão começa **Pendente**.
@@ -107,9 +107,10 @@ O sistema começa **vazio** — nenhum educando, usuário ou resposta de exemplo
 ## 6. Profissionais de Apoio (acesso só ao autorizado)
 
 1. **Antes de autorizar** (ou depois de revogar), entre como **Profissional de Apoio**.
-   - ✅ Só a aba **Profissionais de Apoio** aparece; nenhuma outra área é acessível.
+   - ✅ No menu aparece só **Profissionais de Apoio** (e Construção do PDI/Acompanhamento);
+     nenhuma área de outra pessoa fica acessível.
 2. Com a autorização vigente, entre de novo.
-   - ✅ Aparecem apenas a própria aba e **as áreas que a família liberou** (em leitura).
+   - ✅ No menu aparecem a própria área e **as áreas que a família liberou** (em leitura).
 3. Preencha **Identificação profissional** (nome, área de atuação, registro) e salve.
    - ✅ A contribuição fica registrada com o nome de quem escreveu.
 
@@ -126,8 +127,8 @@ O sistema começa **vazio** — nenhum educando, usuário ou resposta de exemplo
 3. Aba **Versões do PDI**.
    - ✅ Lista de tudo o que foi salvo (educando, data, autor, área, o que mudou).
    - ✅ **Baixar relatório** gera o CSV do histórico.
-4. Aba **Planos de PDI** → abrir um plano.
-   - ✅ As cinco abas aparecem e o Mestre edita qualquer uma delas.
+4. Na área **Educandos**, toque em **Abrir PDI**.
+   - ✅ O Mestre cai na área do educando e pode editar qualquer uma das áreas.
 
 ---
 
@@ -146,7 +147,7 @@ O sistema começa **vazio** — nenhum educando, usuário ou resposta de exemplo
 
 ## 9. Permissões, backup e privacidade
 
-1. Como Mestre, aba **Permissões de acesso**.
+1. Como Mestre, área **Usuário Mestre** → sub-aba **Permissões de acesso**.
    - ✅ A matriz mostra Educando, Professor, AEE, Família e Profissionais de Apoio.
    - ✅ Mudar para **Sem acesso** esconde a área daquela pessoa na hora seguinte.
 2. **Configurações** → **Exportar dados (JSON)**.

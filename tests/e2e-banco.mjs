@@ -95,7 +95,22 @@ const digitar = async (el, valor) => {
 const menu = (rotulo) =>
   [...container.querySelectorAll('.sidebar button.side-link')].find((b) => b.textContent.trim() === rotulo)
 
-await clicar(menu('Educandos'))
+await clicar(menu('Usuário Mestre'))
+// a área do Mestre tem as tarefas administrativas em sub-abas
+const aba = (rotulo) =>
+  [...container.querySelectorAll('.admin-subabas button')].find(
+    (b) => b.textContent.trim() === rotulo,
+  )
+{
+  let botao = aba('Educandos')
+  for (let tentativa = 0; tentativa < 20 && !botao; tentativa++) {
+    await act(async () => {
+      await espera(60)
+    })
+    botao = aba('Educandos')
+  }
+  await clicar(botao)
+}
 const abrir = [...container.querySelectorAll('button')].find((b) => /Cadastrar educando/i.test(b.textContent))
 await clicar(abrir)
 const form = container.querySelector('form')

@@ -36,6 +36,7 @@ import {
   autorizacaoDe,
   camposDaArea,
   camposPorSecao,
+  chaveInternaDaArea,
   chaveModo,
   LIMITE_RESPOSTA,
   novaVersao,
@@ -44,6 +45,7 @@ import {
   progressoEstudante,
   TEMAS_ESTUDANTE,
   tituloDaArea,
+  type AreaNavegacao,
   type CampoConfig,
   type CategoriaPrancha,
   type Configuracao,
@@ -89,9 +91,32 @@ export function rotuloDaAba(chave: string) {
 }
 
 /** Área que cada perfil abre por padrão ao entrar no PDI. */
-export function areaPadraoDoPerfil(perfil: Perfil) {
+export function areaPadraoDoPerfil(perfil: Perfil): AreaNavegacao {
   const area = AREAS_COLABORATIVAS.find(item => item.perfil === perfil)
-  return area?.chave ?? AREA_ESTUDANTE.chave
+  return (area?.chave ?? AREA_ESTUDANTE.chave) as AreaNavegacao
+}
+
+/** Rótulo de cada área na navegação principal. */
+export function rotuloDaArea(area: AreaNavegacao) {
+  const rotulos: Record<AreaNavegacao, string> = {
+    educando: 'Educando',
+    professor: 'Professor',
+    aee: 'Professor de AEE',
+    familia: 'Família',
+    apoio: 'Profissionais de Apoio',
+    construcao: 'Construção do PDI',
+    acompanhamento: 'Acompanhamento',
+    mestre: 'Usuário Mestre',
+    acessibilidade: 'Acessibilidade',
+    configuracoes: 'Configurações',
+  }
+  return rotulos[area] ?? area
+}
+
+/** Título completo da tela de uma área do PDI. */
+export function tituloDaTelaDaArea(area: string) {
+  if (area === AREA_ESTUDANTE.chave) return 'Área do Educando'
+  return AREAS_COLABORATIVAS.find(item => item.chave === area)?.titulo ?? tituloDaArea(area)
 }
 
 /**
@@ -113,11 +138,14 @@ export default function AreaParticipante({
   definirModo,
   estudantesPermitidos,
   atualizar,
+  areaFixa,
 }: {
   contexto: ContextoUsuario
   config: Configuracao
   ehAdmin: boolean
   avisar: Avisar
+  /** Quando a área vem da navegação principal, a tela mostra só ela. */
+  areaFixa?: string
   estudanteIdInicial?: string
   onVoltar?: () => void
   acessibilidade: ControleAcessibilidade
@@ -129,7 +157,11 @@ export default function AreaParticipante({
 }) {
   const estudantes = estudantesPermitidos ?? config.estudantes
   const [estudanteId, setEstudanteId] = useState(estudanteIdInicial ?? estudantes[0]?.id ?? '')
-  const [areaAtiva, setAreaAtiva] = useState(() => areaPadraoDoPerfil(contexto.perfil))
+  // a navegação principal usa a chave "educando"; internamente a área é "estudante"
+  const chaveFixa = areaFixa ? chaveInternaDaArea(areaFixa) : undefined
+  const [areaAtiva, setAreaAtiva] = useState(
+    () => chaveFixa ?? areaPadraoDoPerfil(contexto.perfil),
+  )
   const [foco, setFoco] = useState<string | null>(null)
   const listaRef = useRef<HTMLDivElement>(null)
 
@@ -160,8 +192,9 @@ export default function AreaParticipante({
 
   // mantém a aba escolhida válida quando as permissões mudam
   useEffect(() => {
-    if (abas.length > 0 && !abas.includes(areaAtiva)) setAreaAtiva(abas[0])
-  }, [abas, areaAtiva])
+    if (chaveFixa && chaveFixa !== areaAtiva) setAreaAtiva(chaveFixa)
+    else if (abas.length > 0 && !abas.includes(areaAtiva)) setAreaAtiva(abas[0])
+  }, [abas, areaAtiva, chaveFixa])
 
   if (!estudante || estudantes.length === 0) {
     return (
@@ -269,8 +302,18 @@ export default function AreaParticipante({
   return (
     <section ref={listaRef}>
       <Cabecalho
-        titulo={ehAdmin ? 'Planos de PDI' : 'Meu PDI'}
-        descricao="Cada aba é uma área do plano. Toda contribuição é salva, identificada e guardada no histórico."
+        titulo={
+          chaveFixa
+            ? tituloDaTelaDaArea(chaveFixa)
+            : ehAdmin
+              ? 'Planos de PDI'
+              : 'Meu PDI'
+        }
+        descricao={
+          chaveFixa
+            ? 'Toda contribuição é salva com autor e data e entra no histórico de versões do PDI.'
+            : 'Cada aba é uma área do plano. Toda contribuição é salva, identificada e guardada no histórico.'
+        }
         {...(onVoltar ? { acao: 'Voltar', onAction: onVoltar } : {})}
       />
 
@@ -313,7 +356,7 @@ export default function AreaParticipante({
         </p>
       )}
 
-      {abas.length === 0 ? (
+      {abas.length === 0 || (chaveFixa && acessoAtual === 'Sem acesso') ? (
         <div className="empty-state" role="status">
           <Lock aria-hidden="true" />
           <strong>Nenhuma área liberada para o seu perfil</strong>
@@ -324,7 +367,12 @@ export default function AreaParticipante({
         </div>
       ) : (
         <>
-          <div className="area-tabs pdi-abas" role="tablist" aria-label="Áreas do PDI">
+          <div
+            className={`area-tabs pdi-abas ${chaveFixa ? 'oculto' : ''}`}
+            role="tablist"
+            aria-label="Áreas do PDI"
+            hidden={Boolean(chaveFixa)}
+          >
             {abas.map(chave => {
               const progresso = progressoDa(chave)
               return (

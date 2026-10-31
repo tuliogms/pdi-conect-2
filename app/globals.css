@@ -5462,3 +5462,46 @@ button {
   padding: 6px;
   object-fit: contain;
 }
+
+/* ------------------------------------------------------------------ */
+/* Navegação principal por área do PDI                                 */
+/* ------------------------------------------------------------------ */
+
+.sidebar .side-link {
+  text-align: left;
+}
+
+.area-admin {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-subabas {
+  border-bottom: 1px solid #e2eee0;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+}
+
+.admin-subabas .area-tab {
+  font-size: 11px;
+}
+
+.pdi-abas[hidden] {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .admin-subabas {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+  }
+
+  .admin-subabas .area-tab {
+    flex: none;
+    white-space: nowrap;
+  }
+}

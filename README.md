@@ -95,51 +95,49 @@ registro de exemplo. Se `DATABASE_URL` apontar para um banco sem essas tabelas, 
 O perfil é resolvido no servidor e aceita apelidos na URL (`aluno`, `AEE`, `mestre`,
 `profissional da saude`…), normalizados em `lib/perfis.ts`.
 
-## As abas, uma por uma
+## A navegação é a das áreas do PDI
 
-O PDI é uma **área por aba**. Quem entra vê a sua aba já aberta; o Usuário Mestre vê todas.
+A barra lateral tem **uma entrada por área do PDI** (não telas soltas):
 
-### Gestor (11 abas)
-
-| Aba | O que tem |
+| Item da navegação | O que abre |
 | --- | --- |
-| **Visão geral** | Educandos, usuários, convites pendentes, permissões e campos; atalhos e histórico de alterações |
-| **Usuários** | Busca e filtros por perfil/status; cadastrar, editar, ativar/desativar e remover; vínculo com o educando; e-mail repetido barrado |
-| **Educandos** | Cartões com turma, escola, equipe e progresso; cadastrar, editar, remover (com confirmação); atalho para abrir o PDI |
-| **Planos de PDI** | Escolha do educando e o PDI completo em abas (Educando, Professor, AEE, Família, Profissionais de Apoio) |
-| **PDI consolidado** | Documento único com a situação de cada área, o que o educando conta, as contribuições **com autor e data**, evolução, próximos passos e histórico de versões; **Gerar PDF** |
-| **Versões do PDI** | Histórico de tudo o que foi salvo (educando, quando, autor, área e o que mudou), com **relatório em CSV** |
-| **Permissões de acesso** | Matriz pessoa × área (Educando, Professor, AEE, Família, Profissionais de Apoio) com `Padrão / Editar / Comentar / Visualizar / Sem acesso` |
-| **Campos e formulários** | Abas por área e por seção; adicionar, editar, **reordenar** (↑ ↓) e remover campos; tipo texto/lista/prancha; o que os outros perfis podem fazer; **perguntas norteadoras do educando** configuráveis |
-| **Pranchas de comunicação** | Criar/renomear/remover pranchas, adicionar e remover símbolos (imagem + nome escrito) |
-| **Acompanhamento** | Indicadores com gráfico, **registros descritivos por período**, próximos passos e relatório em CSV |
-| **Configurações** | Identidade institucional (nome, escola, logo), onde os dados ficam, backup JSON, apagar tudo e histórico administrativo |
+| **Educando** | seis seções fixas sobre o educando (texto, áudio, prancha, perguntas) |
+| **Professor** | oito seções da área pedagógica |
+| **Professor de AEE** | nove seções do Atendimento Educacional Especializado |
+| **Família** | dez seções, incluindo a **autorização de compartilhamento** |
+| **Profissionais de Apoio** | seis seções; só enxerga o que a família autorizou |
+| **Construção do PDI** | o consolidado com autoria, situação de cada área, versões e **PDF** |
+| **Acompanhamento** | registros por período, gráfico e relatórios |
+| **Usuário Mestre** | só para o perfil Mestre: as nove tarefas administrativas em sub-abas |
 
-### Participante (7 abas)
+Cada pessoa entra na sua área; as demais aparecem conforme a permissão (e, no caso dos
+Profissionais de Apoio, conforme a autorização da família). Em **Preferências** ficam
+*Acessibilidade* e *Configurações*.
 
-| Aba | O que tem |
+### Área do Usuário Mestre (9 sub-abas)
+
+| Sub-aba | O que tem |
 | --- | --- |
-| **Início** | Saudação, situação do PDI, fluxo das áreas e próximos passos |
-| **Meus alunos** (professor/AEE) | Cartões com situação do PDI, etapas concluídas, chips de potencialidades e busca |
-| **Meu PDI** | As cinco abas de área; a pessoa cai na própria área (o educando nas seis seções, o professor nas oito, o AEE nas nove, a família nas dez, os profissionais de apoio nas seis) |
-| **PDI consolidado** | O documento final, com **Gerar PDF** e o histórico de versões |
-| **Acompanhamento** | Registros por período, evolução, gráfico e próximos passos, restritos aos educandos da pessoa |
-| **Acessibilidade** | Leitura em voz alta, velocidade, ditado, alto contraste, botões grandes e instruções de TalkBack/VoiceOver |
-| **Configurações** | Sua conta e vínculo, modo de armazenamento, backup |
+| **Visão geral** | cartões com educandos, usuários, convites, permissões e campos; atalhos |
+| **Usuários** | cadastro, edição, ativação e vínculo com o educando |
+| **Educandos** | cadastro, edição, remoção e atalho **Abrir PDI** |
+| **Permissões de acesso** | matriz pessoa × área |
+| **Campos e formulários** | perguntas por área/seção + **perguntas norteadoras do educando** |
+| **Pranchas de comunicação** | pranchas e símbolos (imagem + nome escrito) |
+| **Versões do PDI** | histórico com autor, data e área; relatório CSV |
+| **Histórico administrativo** | registro de auditoria das mudanças |
+| **Configurações** | identidade institucional, armazenamento e backup |
 
 ### Dentro de cada área do PDI
 
-- **Seções fixas**: o educando tem 6 seções (Meu perfil, Meus interesses, Como aprendo melhor,
-  Facilidades e dificuldades, Meus objetivos, Meu desenvolvimento); o professor 8; o AEE 9; a
-  família 10; os profissionais de apoio 6. A escola **não cria nem remove seções** — configura as
-  perguntas dentro delas.
+- **Seções fixas**: 6 no educando, 8 no professor, 9 no AEE, 10 na família e 6 nos profissionais
+  de apoio. A escola **não cria nem remove seções** — configura as perguntas dentro delas.
 - **Respostas**: texto, **áudio gravado**, **prancha de comunicação** (símbolo → frase, seleção
   única ou múltipla) e ditado por voz. Toda pergunta tem “Ouvir” para leitor de tela e TTS.
 - **Autoria**: cada resposta mostra quem escreveu e quando; comentários ficam separados da
   resposta e não a sobrescrevem.
 - **Autorização da família**: a família autoriza (e pode revogar) o compartilhamento com os
-  Profissionais de Apoio, escolhendo **quais áreas** liberar. É uma regra de acesso, não um aviso:
-  sem autorização, o profissional só escreve na própria área.
+  Profissionais de Apoio, escolhendo **quais áreas** liberar. É regra de acesso, não aviso.
 - **Versões**: cada resposta salva entra no histórico do PDI com autor, data e área.
 
 ## Como o portfólio aparece no app
@@ -148,7 +146,7 @@ O PDI é uma **área por aba**. Quem entra vê a sua aba já aberta; o Usuário 
 | --- | --- |
 | 1. Login com UEMG + ProfEi | `/login` (logos no cartão e na coluna verde) |
 | 2. Fluxo educando → professor → AEE → família → apoio → consolidado | bloco **Como está o PDI** (Início), abas do PDI e *Situação de cada área* no consolidado |
-| 3. Seis seções fixas do educando com Descritivo/Perguntas | **Meu PDI** → aba *Educando*; perguntas em **Campos e formulários** |
+| 3. Seis seções fixas do educando com Descritivo/Perguntas | navegação **Educando**; perguntas em **Campos e formulários** |
 | 4. Acessibilidade (TTS, STT, áudio, contraste, botões grandes, pranchas) | aba **Acessibilidade**, botões “Ouvir”, “Dar ditado”, “Responder em áudio” e “Prancha de comunicação” |
 | 5. Área do professor (8 seções) | aba *Professor* |
 | 6. Área do AEE (9 seções) | aba *AEE* |
@@ -199,7 +197,7 @@ RELATORIO.md                   o que foi feito e o que ainda depende de decisão
 ## Testes
 
 ```bash
-pnpm test          # 203 verificações (76 + 14 + 80 + 33)
+pnpm test          # 209 verificações (76 + 14 + 86 + 33)
 pnpm test:logic    # camada de dados, sem navegador
 pnpm test:styles   # regras de CSS (menu, contraste, impressão)
 pnpm test:ui       # navegação real dos componentes (jsdom + React)
@@ -215,7 +213,7 @@ de ponta a ponta da integração; as outras quatro suítes rodam sozinhas, sem s
 | --- | --- | --- |
 | Lógica | `tests/logic.mjs` | migração v1→v2 e `saude` → `apoio`, base vazia e sem exemplos, modo local sem API, permissões efetivas, **autorização da família** (liberar, limitar por área e revogar), seções fixas de cada área (6/8/9/10/6), agrupamento de campos por seção, perguntas do educando configuráveis, pranchas padrão, versões do PDI, progresso, respostas em branco, listas/chips, evolução, próximos passos, comentários, backup, planilha CSV, acessibilidade, limpeza |
 | Estilos | `tests/styles.mjs` | **nenhuma regra esconde o menu lateral fora da impressão**, `.sidebar.open` entra na tela, camada de fechar, botão de menu, foco visível, alto contraste, botões grandes, status com texto ao lado do ícone, `@media print` |
-| Interface | `tests/ui.mjs` | as 11 abas do gestor e as 7 do participante com conteúdo próprio, menu em tela estreita (abrir, navegar, fechar, clique fora, `Esc`, `aria-expanded`), Meus alunos → PDI, abas por área com o perfil caindo na própria área, leitura/escrita por área, **prancha de comunicação** (símbolos com nome escrito, composição símbolo → frase), **autorização da família** (sem autorização o apoio não vê áreas; com autorização vê só a liberada; revogar fecha), controles de acessibilidade e console sem erros |
+| Interface | `tests/ui.mjs` | a navegação principal com as **oito áreas do PDI** (e não as telas antigas), as **nove sub-abas do Mestre**, o perfil caindo na própria área, áreas em leitura/escrita conforme a permissão, menu em tela estreita (abrir, navegar, fechar, clique fora, `Esc`, `aria-expanded`), **prancha de comunicação** (símbolos com nome escrito, composição símbolo → frase), **autorização da família** (sem autorização o apoio não vê áreas; com autorização vê só a liberada), controles de acessibilidade e console sem erros |
 | Fluxos | `tests/fluxos.mjs` | educando escreve e salva (Descritivo e Perguntas), professor salva campo na própria aba e comenta a da família, listas viram chips, cadastro de educando e usuário (com e-mail repetido barrado), permissão alterada, campo criado e reordenado, evolução registrada, próximos passos, preferências salvas |
 
 Os testes de interface montam os componentes reais em jsdom, com o React do projeto; `next/navigation`

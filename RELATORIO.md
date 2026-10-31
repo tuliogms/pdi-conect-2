@@ -458,3 +458,41 @@ O que as suítes novas provam:
 | Nome do produto | O portfólio chama de **PDI Participativo**; o app segue como **PDI Interativo** (agora configurável em Configurações → Identidade institucional) |
 | Imagens reais nos símbolos | As pranchas usam emoji + nome escrito; o Mestre pode trocar por imagens próprias (a estrutura `imagem` já existe) |
 | Banco do preview | É um Postgres de desenvolvimento (PGlite); para uso real troque `DATABASE_URL` |
+
+## Rodada 7 — a navegação principal passa a ser a das áreas do PDI
+
+### O pedido
+
+> "as areas da navegaçao principal do pdi continuam as mesmas e nao as que eu pedi"
+
+Na Rodada 6 as áreas do PDI viraram **abas dentro de "Meu PDI"**, mas a barra lateral continuava
+com as telas antigas (Início, Meus alunos, Meu PDI, PDI consolidado, Acompanhamento,
+Acessibilidade, Configurações). A especificação pede o contrário: **uma aba por área do PDI**.
+
+### O que mudou
+
+| Antes (barra lateral) | Agora |
+| --- | --- |
+| Início, Meus alunos, Meu PDI, PDI consolidado, Acompanhamento, Acessibilidade, Configurações | **Educando · Professor · Professor de AEE · Família · Profissionais de Apoio · Construção do PDI · Acompanhamento** (+ *Preferências*: Acessibilidade e Configurações) |
+
+- Cada área abre sozinha na tela (sem repetir a faixa de abas) e a pessoa cai na **sua** área.
+- O **Usuário Mestre** vê todas as áreas e uma oitava entrada, **Usuário Mestre**, com as **nove
+  tarefas administrativas em sub-abas**: Visão geral, Usuários, Educandos, Permissões de acesso,
+  Campos e formulários, Pranchas de comunicação, Versões do PDI, **Histórico administrativo** e
+  Configurações.
+- "Planos de PDI"/"PDI consolidado" saíram do painel administrativo: viraram **Construção do PDI**
+  na navegação. O botão **Abrir PDI** (em Educandos) abre a área do educando.
+- A chave de navegação `educando` é convertida para a chave interna `estudante` (a área é gravada
+  assim desde a primeira versão) — sem perder nenhuma resposta já registrada.
+- Áreas sem acesso (permissão ou autorização da família) **não aparecem** no menu.
+
+### Verificação
+
+| Checagem | Resultado |
+| --- | --- |
+| `pnpm typecheck` | sem erros |
+| `pnpm build` | 6 rotas |
+| `pnpm test` | **209/209** — lógica 76, estilos 14, interface 86, fluxos 33 |
+| `pnpm test:banco` | **5/5** (interface → API → Postgres) |
+| Rotas no preview | `/`, `/login`, `/dashboard` (todos os perfis), `/api/config`, `/api/pdi` → 200 |
+| Banco depois do teste | limpo (0/0/0) |

@@ -112,87 +112,124 @@ async function navegar(container, rotulo) {
   await clicar(botao)
 }
 
+async function abaAdmin(container, rotulo) {
+  // a configuração chega de forma assíncrona: espera as sub-abas aparecerem
+  let botao = null
+  for (let tentativa = 0; tentativa < 20 && !botao; tentativa++) {
+    botao = [...container.querySelectorAll('.admin-subabas button')].find(
+      item => item.textContent.trim() === rotulo,
+    )
+    if (!botao) await act(async () => { await espera(60) })
+  }
+  assert.ok(botao, `sub-aba "${rotulo}" não encontrada`)
+  await clicar(botao)
+}
+
 const porTexto = (raiz, seletor, texto) =>
   [...raiz.querySelectorAll(seletor)].find(item => item.textContent.trim().includes(texto))
 
 // ---------------------------------------------------------------------------
 // 4. cenários
 // ---------------------------------------------------------------------------
-const secoesAdmin = [
+// navegação principal = as áreas do PDI
+const menuDoMestre = [
+  ['Educando', 'Área do Educando'],
+  ['Professor', 'Área do Professor'],
+  ['Professor de AEE', 'Área do AEE'],
+  ['Família', 'Área da Família'],
+  ['Profissionais de Apoio', 'Profissionais de Apoio'],
+  ['Construção do PDI', 'PDI consolidado'],
+  ['Acompanhamento', 'Acompanhamento'],
+  ['Usuário Mestre', 'Visão geral'],
+]
+
+const subabasDoMestre = [
   'Visão geral',
   'Usuários',
   'Educandos',
-  'Planos de PDI',
-  'PDI consolidado',
-  'Versões do PDI',
   'Permissões de acesso',
   'Campos e formulários',
   'Pranchas de comunicação',
-  'Acompanhamento',
+  'Versões do PDI',
+  'Histórico administrativo',
   'Configurações',
 ]
 
-const secoesParticipante = [
-  'Início',
-  'Meus alunos',
-  'Meu PDI',
-  'PDI consolidado',
-  'Acompanhamento',
-  'Acessibilidade',
-  'Configurações',
-]
-
-console.log('\n1) Usuário Mestre — todas as abas')
+console.log('\n1) Usuário Mestre — as áreas do PDI e a área administrativa')
 {
   const container = await montar('Usuário Mestre')
   ok(
-    'menu do administrador tem as onze abas',
-    itensDoMenu(container).length === secoesAdmin.length,
+    'a navegação principal tem as oito áreas do PDI',
+    itensDoMenu(container).length === menuDoMestre.length,
+  )
+  ok(
+    'os itens da navegação são as áreas (não as telas antigas)',
+    itensDoMenu(container)
+      .map(item => item.textContent.trim())
+      .join('|') === menuDoMestre.map(([rotulo]) => rotulo).join('|'),
   )
 
-  for (const secao of secoesAdmin) {
-    await navegar(container, secao)
+  for (const [rotulo, tituloEsperado] of menuDoMestre) {
+    await navegar(container, rotulo)
     const titulo = textoDoH1(container)
-    ok(`aba "${secao}" abre (h1: ${titulo || '—'})`, titulo.includes(secao))
+    ok(`área "${rotulo}" abre (h1: ${titulo || '—'})`, titulo === tituloEsperado)
   }
 
-  // cada aba precisa ter conteúdo próprio — não pode ser uma tela vazia
-  await navegar(container, 'Visão geral')
+  await navegar(container, 'Educando')
+  ok('a área do educando mostra as seis seções', container.querySelectorAll('.topico-card').length === 6)
+  ok('a área do educando não repete as abas antigas', !container.querySelector('.pdi-abas:not([hidden])'))
+
+  await navegar(container, 'Professor')
+  ok(
+    'a área do professor mostra as oito seções',
+    container.querySelectorAll('.secao-bloco').length === 8,
+  )
+
+  await navegar(container, 'Usuário Mestre')
+  const abasMestre = [...container.querySelectorAll('.admin-subabas .area-tab')].map(aba =>
+    aba.textContent.trim(),
+  )
+  ok('a área do Mestre tem as nove tarefas administrativas', abasMestre.length === subabasDoMestre.length)
+  ok('as tarefas do Mestre são as da especificação', abasMestre.join('|') === subabasDoMestre.join('|'))
+
+  for (const secao of subabasDoMestre) {
+    await abaAdmin(container, secao)
+    const titulo = textoDoH1(container)
+    ok(`tarefa "${secao}" abre (h1: ${titulo || '—'})`, titulo === secao)
+  }
+
+  await abaAdmin(container, 'Visão geral')
   ok('visão geral mostra os indicadores', container.textContent.includes('Educandos'))
 
-  await navegar(container, 'Usuários')
+  await abaAdmin(container, 'Usuários')
   ok('usuários lista a equipe cadastrada', container.querySelectorAll('.admin-table .table-row').length === 5)
 
-  await navegar(container, 'Educandos')
+  await abaAdmin(container, 'Educandos')
   ok('educandos lista o educando cadastrado', container.querySelectorAll('.table-row.estudantes').length >= 1)
 
-  await navegar(container, 'Planos de PDI')
-  ok('planos de PDI lista os educandos', container.querySelectorAll('.pdi-card').length >= 1)
-  const abrirPlano = container.querySelector('.pdi-card')
-  await clicar(abrirPlano)
-  ok(
-    'plano abre as áreas do PDI em abas',
-    container.querySelectorAll('.pdi-abas .area-tab').length >= 5,
-  )
-  ok(
-    'plano mostra os seis tópicos do educando',
-    container.querySelectorAll('.topico-card').length === 6,
-  )
-
-  await navegar(container, 'Permissões de acesso')
+  await abaAdmin(container, 'Permissões de acesso')
   ok('permissões mostra a matriz de áreas', container.querySelectorAll('.permission-row').length >= 4)
   ok('permissões tem seletores de nível', container.querySelectorAll('.permission-row select').length >= 4)
 
-  await navegar(container, 'Campos e formulários')
+  await abaAdmin(container, 'Campos e formulários')
   ok('campos lista os campos configuráveis', container.querySelectorAll('.field-config').length >= 5)
+
+  await abaAdmin(container, 'Pranchas de comunicação')
+  ok('pranchas mostra os símbolos', container.querySelectorAll('.prancha-simbolo').length >= 3)
+
+  await abaAdmin(container, 'Versões do PDI')
+  ok('versões explica o histórico', container.textContent.includes('versão'))
+
+  await abaAdmin(container, 'Histórico administrativo')
+  ok('histórico administrativo abre', container.textContent.includes('Histórico administrativo'))
+
+  await abaAdmin(container, 'Configurações')
+  ok('configurações mostra a exportação', container.textContent.includes('Exportar dados'))
 
   await navegar(container, 'Acompanhamento')
   ok('acompanhamento mostra a evolução', container.textContent.includes('Evolução'))
 
-  await navegar(container, 'Configurações')
-  ok('configurações mostra a exportação', container.textContent.includes('Exportar dados'))
-
-  await navegar(container, 'PDI consolidado')
+  await navegar(container, 'Construção do PDI')
   ok('consolidado mostra o documento', Boolean(container.querySelector('.consolidado')))
   ok('consolidado tem o botão de PDF', container.textContent.includes('Gerar PDF'))
 }
@@ -236,59 +273,40 @@ console.log('\n2) Menu lateral em tela estreita (celular / preview)')
   )
 }
 
-console.log('\n3) Professor — abas, Meus alunos e permissões por área')
+console.log('\n3) Professor — a navegação é a das áreas do PDI')
 {
   const container = await montar('Professor')
-  ok('menu do participante tem sete abas', itensDoMenu(container).length === secoesParticipante.length)
-
-  for (const secao of secoesParticipante) {
-    await navegar(container, secao)
-    const titulo = textoDoH1(container)
-    ok(
-      `aba "${secao}" abre (h1: ${titulo || '—'})`,
-      secao === 'Início' ? titulo.startsWith('Olá') : titulo.includes(secao),
-    )
-  }
-
-  await navegar(container, 'Meus alunos')
-  ok('mostra o aluno vinculado', Boolean(container.querySelector('.aluno-card')))
-
-  // o cartão do aluno inteiro é o botão que abre o PDI
-  await clicar(container.querySelector('.aluno-card'))
-  const abas = [...container.querySelectorAll('.pdi-abas .area-tab')]
-  ok('abre o PDI pelo cartão do aluno', abas.length >= 5)
-
-  // o professor entra direto na própria aba
-  const grupoProfessor = container.querySelector('.aba-painel .area-group')
+  const itens = itensDoMenu(container).map(item => item.textContent.trim())
   ok(
-    'o professor cai na própria área',
-    Boolean(grupoProfessor) && grupoProfessor.textContent.includes('Área do Professor'),
+    'o menu lista as áreas do PDI (não as telas antigas)',
+    itens.slice(0, 5).join('|') ===
+      'Educando|Professor|Professor de AEE|Família|Profissionais de Apoio',
+  )
+  ok(
+    'o professor entra direto na própria área',
+    textoDoH1(container) === 'Área do Professor',
+  )
+
+  ok(
+    'a área do professor tem as oito seções',
+    container.querySelectorAll('.secao-bloco').length === 8,
   )
   ok(
     'área do professor é editável (tem campos com salvar)',
-    grupoProfessor.querySelectorAll('textarea:not([readonly])').length >= 1 &&
-      grupoProfessor.querySelectorAll('.save-answer').length >= 1,
-  )
-  ok(
-    'área do professor tem as oito seções do professor',
-    grupoProfessor.querySelectorAll('.secao-bloco').length >= 6,
+    container.querySelectorAll('textarea:not([readonly])').length >= 1 &&
+      container.querySelectorAll('.save-answer').length >= 1,
   )
 
-  // abre a aba da família: ela deve ser somente leitura para o professor
-  const abaFamilia = abas.find(aba => aba.textContent.includes('Família'))
-  await clicar(abaFamilia)
-  const grupoFamilia = container.querySelector('.aba-painel .area-group')
+  await navegar(container, 'Família')
+  ok('a área da família abre pela navegação', textoDoH1(container) === 'Área da Família')
   ok(
-    'área da família fica somente leitura para o professor',
-    Boolean(grupoFamilia) &&
-      grupoFamilia.querySelectorAll('textarea[readonly]').length >= 1,
+    'a área da família fica somente leitura para o professor',
+    container.querySelectorAll('textarea[readonly]').length >= 1,
   )
-  ok('área da família não oferece salvar', grupoFamilia.querySelectorAll('.save-answer').length === 0)
+  ok('a área da família não oferece salvar', container.querySelectorAll('.save-answer').length === 0)
 
-  // as seis seções do educando ficam na aba do educando
-  const abaEducando = abas.find(aba => aba.textContent.includes('Educando'))
-  await clicar(abaEducando)
-  ok('os seis tópicos do educando ficam na aba do educando', container.querySelectorAll('.topico-card').length === 6)
+  await navegar(container, 'Educando')
+  ok('a área do educando tem as seis seções', container.querySelectorAll('.topico-card').length === 6)
   ok(
     'descritivo e perguntas disponíveis',
     container.textContent.includes('Descritivo') && container.textContent.includes('Perguntas'),
@@ -329,30 +347,27 @@ console.log('\n4) Acessibilidade — controles')
 console.log('\n5) Educando — PDI e permissões')
 {
   const container = await montar('Educando')
-  await navegar(container, 'Meu PDI')
+  ok('o educando entra direto na própria área', textoDoH1(container) === 'Área do Educando')
   ok('educando vê os seis tópicos', container.querySelectorAll('.topico-card').length === 6)
   ok('educando pode escolher Descritivo ou Perguntas', container.textContent.includes('Descritivo'))
-  const abaProfessor = [...container.querySelectorAll('.pdi-abas .area-tab')].find(aba =>
-    aba.textContent.includes('Professor'),
-  )
-  await clicar(abaProfessor)
-  const grupoProfessor = container.querySelector('.aba-painel .area-group')
+
+  await navegar(container, 'Professor')
+  const grupoProfessor = container.querySelector('.area-group')
   ok(
     'educando lê a área do professor, mas não edita',
     Boolean(grupoProfessor) &&
-      grupoProfessor.textContent.includes('Observações pedagógicas') &&
+      grupoProfessor.textContent.includes('Área do Professor') &&
       grupoProfessor.querySelectorAll('.save-answer').length === 0,
   )
 
-  await navegar(container, 'Início')
-  ok('início cumprimenta a pessoa', textoDoH1(container).startsWith('Olá'))
+  await navegar(container, 'Acessibilidade')
+  ok('a tela de acessibilidade fica nas preferências', textoDoH1(container) === 'Acessibilidade')
 }
 
 console.log('\n6) Prancha de comunicação na área do educando')
 {
   const container = await montar('Educando')
-  await navegar(container, 'Meu PDI')
-  const abrirPrancha = porTexto(container, '.aba-painel button', 'Prancha de comunicação')
+  const abrirPrancha = porTexto(container, '.area-group button, .topico-card button', 'Prancha de comunicação')
   ok('a prancha pode ser aberta no campo', Boolean(abrirPrancha))
   await clicar(abrirPrancha)
 
@@ -370,27 +385,24 @@ console.log('\n6) Prancha de comunicação na área do educando')
 
   const usar = porTexto(container, '.prancha-frase button', 'Usar esta frase')
   await clicar(usar)
-  const texto = container.querySelector('.aba-painel textarea')
+  const texto = container.querySelector('.topico-card textarea')
   ok('a frase composta vai para a resposta', Boolean(texto) && texto.value.length > 3)
 }
 
 console.log('\n7) Autorização da família e acesso dos Profissionais de Apoio')
 {
-  // sem autorização: o profissional de apoio não lê nenhuma área
+  // sem autorização: o profissional de apoio não lê nenhuma área de outra pessoa
   const apoio = await montar('Profissional de Apoio')
-  await navegar(apoio, 'Meu PDI')
-  const abasApoio = [...apoio.querySelectorAll('.pdi-abas .area-tab')].map(aba =>
-    aba.textContent.trim(),
-  )
-  ok('sem autorização, o apoio vê só a própria área', abasApoio.length === 1)
+  const itensApoio = itensDoMenu(apoio).map(item => item.textContent.trim())
+  ok('o apoio entra na própria área', textoDoH1(apoio) === 'Profissionais de Apoio')
   ok(
-    'sem autorização, nenhuma área de outra pessoa aparece',
-    !abasApoio.some(rotulo => /Educando|Professor|AEE|Família/.test(rotulo)),
+    'sem autorização, nenhuma área de outra pessoa aparece no menu',
+    !itensApoio.some(rotulo => /^(Educando|Professor|Professor de AEE|Família)$/.test(rotulo)),
   )
 
   // a família autoriza o compartilhamento da área do educando
   const familia = await montar('Família')
-  await navegar(familia, 'Meu PDI')
+  ok('a família entra na própria área', textoDoH1(familia) === 'Área da Família')
   const autorizacao = familia.querySelector('.autorizacao-card')
   ok('família vê o cartão de autorização', Boolean(autorizacao))
   ok('autorização começa pendente', autorizacao.textContent.includes('Pendente'))
@@ -409,18 +421,13 @@ console.log('\n7) Autorização da família e acesso dos Profissionais de Apoio'
   ok('autorização guarda a área liberada', (autorizacoes[0]?.areas ?? []).length === 1)
   ok('autorização guarda quem autorizou', Boolean(autorizacoes[0]?.responsavel))
 
-  // com autorização vigente, o apoio passa a ler a área liberada
+  // com autorização vigente, o apoio passa a ver a área liberada no menu
   const apoioDepois = await montar('Profissional de Apoio')
-  await navegar(apoioDepois, 'Meu PDI')
+  const itensDepois = itensDoMenu(apoioDepois).map(item => item.textContent.trim())
+  ok('com autorização, a área liberada aparece no menu do apoio', itensDepois.includes('Educando'))
   ok(
-    'com autorização, o apoio vê a área liberada',
-    apoioDepois.querySelectorAll('.pdi-abas .area-tab').length >= 1,
-  )
-  ok(
-    'o apoio continua sem acesso à área da família',
-    ![...apoioDepois.querySelectorAll('.pdi-abas .area-tab')].some(aba =>
-      aba.textContent.includes('Família'),
-    ),
+    'o apoio continua sem a área da família',
+    !itensDepois.includes('Família'),
   )
 }
 

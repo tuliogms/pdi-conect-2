@@ -161,28 +161,55 @@ export type EntradaPdi = {
 
 export type ModoPersistencia = 'banco' | 'local'
 
+/** Abas internas da área do Usuário Mestre (spec do PDI, área 8). */
 export type SecaoAdmin =
   | 'Visão geral'
   | 'Usuários'
   | 'Educandos'
-  | 'Planos de PDI'
-  | 'PDI consolidado'
-  | 'Versões do PDI'
   | 'Permissões de acesso'
   | 'Campos e formulários'
   | 'Pranchas de comunicação'
-  | 'Acompanhamento'
+  | 'Versões do PDI'
+  | 'Histórico administrativo'
   | 'Configurações'
 
-export type SecaoParticipante =
-  | 'Início'
-  | 'Meus alunos'
-  | 'Meu PDI'
-  | 'PDI do estudante'
-  | 'PDI consolidado'
-  | 'Acompanhamento'
-  | 'Acessibilidade'
-  | 'Configurações'
+/**
+ * Navegação principal: uma aba por área do PDI. As cinco primeiras são as
+ * áreas de contribuição; as demais são a construção do plano, o acompanhamento
+ * e a área administrativa do Usuário Mestre.
+ */
+export type AreaNavegacao =
+  | 'educando'
+  | 'professor'
+  | 'aee'
+  | 'familia'
+  | 'apoio'
+  | 'construcao'
+  | 'acompanhamento'
+  | 'mestre'
+  | 'acessibilidade'
+  | 'configuracoes'
+
+/**
+ * Converte a chave usada na navegação principal na chave interna da área
+ * (a área do educando é gravada como "estudante" desde a primeira versão).
+ */
+export function chaveInternaDaArea(area: string) {
+  return area === 'educando' ? AREA_ESTUDANTE.chave : area
+}
+
+/** Abas internas de cada área colaborativa (na navegação principal). */
+export const SECOES_ADMIN: SecaoAdmin[] = [
+  'Visão geral',
+  'Usuários',
+  'Educandos',
+  'Permissões de acesso',
+  'Campos e formulários',
+  'Pranchas de comunicação',
+  'Versões do PDI',
+  'Histórico administrativo',
+  'Configurações',
+]
 
 /* ------------------------------------------------------------------ */
 /* Tópicos fixos do estudante                                          */

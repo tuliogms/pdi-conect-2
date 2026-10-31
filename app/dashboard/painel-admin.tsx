@@ -28,6 +28,7 @@ import {
   novoId,
   perguntasDoTema,
   progressoGeral,
+  SECOES_ADMIN,
   secoesDaArea,
   TEMAS_ESTUDANTE,
   tituloDaArea,
@@ -45,8 +46,6 @@ import { PERFIL_ADMIN, PERFIS, type Perfil } from '@/lib/perfis'
 import type { Avisar, AtualizarConfig } from './dashboard-app'
 import type { ControleAcessibilidade } from './acessibilidade'
 import type { ContextoUsuario } from './area-participante'
-import AreaParticipante from './area-participante'
-import Acompanhamento from './acompanhamento'
 import { Cabecalho } from './cabecalho'
 
 export type PropsPainel = {
@@ -55,6 +54,8 @@ export type PropsPainel = {
   atualizar: AtualizarConfig
   avisar: Avisar
   onNavegar: (secao: SecaoAdmin) => void
+  /** Abre a área do educando na navegação principal. */
+  onAbrirPdi?: (estudanteId: string) => void
   modo: ModoPersistencia
   contexto: ContextoUsuario
   acessibilidade: ControleAcessibilidade
@@ -64,26 +65,44 @@ export type PropsPainel = {
 const STATUS: StatusUsuario[] = ['Ativo', 'Aguardando', 'Inativo']
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
+/**
+ * Área do Usuário Mestre. As abas internas são as tarefas administrativas
+ * (spec do PDI, área 8); as áreas de contribuição ficam na navegação principal.
+ */
 export default function PainelAdmin(props: PropsPainel) {
-  const { secao } = props
+  const { secao, onNavegar } = props
 
-  if (secao === 'Usuários') return <PainelUsuarios {...props} />
-  if (secao === 'Educandos') return <PainelEstudantes {...props} />
-  if (secao === 'Planos de PDI') return <PainelPlanos {...props} />
-  if (secao === 'Permissões de acesso') return <PainelPermissoes {...props} />
-  if (secao === 'Campos e formulários') return <PainelCampos {...props} />
-  if (secao === 'Pranchas de comunicação') return <PainelPranchas {...props} />
-  if (secao === 'Versões do PDI') return <PainelVersoes {...props} />
-  if (secao === 'Acompanhamento')
-    return (
-      <Acompanhamento
-        config={props.config}
-        autor={props.contexto.nome}
-        avisar={props.avisar}
-      />
-    )
-  if (secao === 'Configurações') return <PainelConfiguracoes {...props} />
-  return <VisaoGeral {...props} />
+  function conteudo() {
+    if (secao === 'Usuários') return <PainelUsuarios {...props} />
+    if (secao === 'Educandos') return <PainelEstudantes {...props} />
+    if (secao === 'Permissões de acesso') return <PainelPermissoes {...props} />
+    if (secao === 'Campos e formulários') return <PainelCampos {...props} />
+    if (secao === 'Pranchas de comunicação') return <PainelPranchas {...props} />
+    if (secao === 'Versões do PDI') return <PainelVersoes {...props} />
+    if (secao === 'Histórico administrativo') return <PainelHistorico {...props} />
+    if (secao === 'Configurações') return <PainelConfiguracoes {...props} />
+    return <VisaoGeral {...props} />
+  }
+
+  return (
+    <div className="area-admin">
+      <div className="area-tabs admin-subabas" role="tablist" aria-label="Áreas do Usuário Mestre">
+        {SECOES_ADMIN.map(item => (
+          <button
+            key={item}
+            type="button"
+            role="tab"
+            aria-selected={secao === item}
+            className={`area-tab ${secao === item ? 'active' : ''}`}
+            onClick={() => onNavegar(item)}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+      {conteudo()}
+    </div>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -112,11 +131,11 @@ function VisaoGeral({ config, onNavegar }: PropsPainel) {
   const atalhos: SecaoAdmin[] = [
     'Usuários',
     'Educandos',
-    'Planos de PDI',
-    'PDI consolidado',
     'Permissões de acesso',
     'Campos e formulários',
-    'Acompanhamento',
+    'Pranchas de comunicação',
+    'Versões do PDI',
+    'Histórico administrativo',
   ]
 
   return (
@@ -517,7 +536,7 @@ function PainelUsuarios({ config, atualizar, avisar }: PropsPainel) {
 
 type FormularioEstudante = { nome: string; serie: string; escola: string }
 
-function PainelEstudantes({ config, atualizar, avisar, onNavegar }: PropsPainel) {
+function PainelEstudantes({ config, atualizar, avisar, onAbrirPdi }: PropsPainel) {
   const [formulario, setFormulario] = useState<FormularioEstudante | null>(null)
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [erro, setErro] = useState('')
@@ -694,7 +713,7 @@ function PainelEstudantes({ config, atualizar, avisar, onNavegar }: PropsPainel)
                 >
                   <Pencil aria-hidden="true" /> Editar
                 </button>
-                <button className="soft-btn" onClick={() => onNavegar('Planos de PDI')}>
+                <button className="soft-btn" onClick={() => onAbrirPdi?.(estudante.id)}>
                   <FileText aria-hidden="true" /> Abrir PDI
                 </button>
                 {confirmando === estudante.id ? (
@@ -726,68 +745,6 @@ function PainelEstudantes({ config, atualizar, avisar, onNavegar }: PropsPainel)
 
 /* ------------------------------------------------------------------ */
 /* Planos de PDI                                                       */
-/* ------------------------------------------------------------------ */
-
-function PainelPlanos(props: PropsPainel) {
-  const { config, avisar, onNavegar, contexto, acessibilidade, definirModo } = props
-  const [estudanteId, setEstudanteId] = useState<string | null>(null)
-
-  if (estudanteId) {
-    return (
-      <AreaParticipante
-        contexto={contexto}
-        config={config}
-        ehAdmin
-        avisar={avisar}
-        estudanteIdInicial={estudanteId}
-        onVoltar={() => setEstudanteId(null)}
-        acessibilidade={acessibilidade}
-        definirModo={definirModo}
-      />
-    )
-  }
-
-  return (
-    <section>
-      <Cabecalho
-        titulo="Planos de PDI"
-        descricao="Abra o plano de um educando para ler e complementar as respostas."
-      />
-
-      {config.estudantes.length === 0 ? (
-        <div className="empty-state">
-          <FileText aria-hidden="true" />
-          <strong>Nenhum PDI disponível</strong>
-          <p>
-            Cadastre um educando primeiro.{' '}
-            <button className="text-link" onClick={() => onNavegar('Educandos')}>
-              Ir para Educandos
-            </button>
-          </p>
-        </div>
-      ) : (
-        <div className="pdi-cards">
-          {config.estudantes.map(estudante => (
-            <button
-              className="pdi-card"
-              key={estudante.id}
-              onClick={() => setEstudanteId(estudante.id)}
-            >
-              <strong>{estudante.nome}</strong>
-              <span>{[estudante.serie, estudante.escola].filter(Boolean).join(' · ') || '—'}</span>
-              <span className="pdi-card-link">
-                Abrir PDI <ChevronRight aria-hidden="true" />
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-    </section>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/* Permissões                                                          */
 /* ------------------------------------------------------------------ */
 
 function PainelPermissoes({ config, atualizar, avisar }: PropsPainel) {
@@ -1799,6 +1756,41 @@ function PainelConfiguracoes({ config, atualizar, modo, avisar }: PropsPainel) {
           </ul>
         )}
       </article>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Histórico administrativo                                            */
+/* ------------------------------------------------------------------ */
+
+function PainelHistorico({ config }: PropsPainel) {
+  const registros = config.historico
+  return (
+    <section>
+      <Cabecalho
+        titulo="Histórico administrativo"
+        descricao="Tudo o que a administração mudou no sistema, com data. É o registro de auditoria da escola."
+      />
+      {registros.length === 0 ? (
+        <div className="empty-state">
+          <History aria-hidden="true" />
+          <strong>Nenhuma alteração registrada ainda</strong>
+          <p>Cadastros, permissões, campos e configurações passam a aparecer aqui quando mudarem.</p>
+        </div>
+      ) : (
+        <ol className="timeline">
+          {registros.map(registro => (
+            <li key={registro.id}>
+              <span className="timeline-ponto" aria-hidden="true" />
+              <div>
+                <strong>{registro.texto}</strong>
+                <small className="muted">{formatarData(registro.quando)}</small>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
     </section>
   )
 }
